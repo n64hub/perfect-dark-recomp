@@ -462,7 +462,7 @@ int main(int argc, char** argv) {
 #ifdef __EMSCRIPTEN__
             // Render to RAM stays on (RT64's default): the light and sun glares read the depth buffer on the CPU when the
             // RDP is done (sched_update_pending_artifacts). On the page a display list doesn't wait for its frame's copy
-            // into RDRAM, which lands when the next list starts, so the glares read their depths a list later, in a list
+            // into RDRAM, which lands while the next list is drawn, so the glares read their depths a list later, in a list
             // of their own (patches/artifacts.c, recomp_pd_render_to_ram_late). The CPU wrote to no framebuffer with a
             // copy pending in the shader recording's 21 levels (docs/web.md, Frame rate).
             recompui::renderer::set_render_to_ram_late(true);

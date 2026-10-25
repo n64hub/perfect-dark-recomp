@@ -4,14 +4,14 @@
 // display list copies the z-buffer under the lights it tests into a buffer of depth samples, and when the RDP is done
 // with the list the scheduler (sched_update_pending_artifacts) keeps the nearer of each sample and the z-buffer, both
 // read from RDRAM, for the frame that draws those glares two frames later. RT64 draws on the GPU and copies a list's
-// images into RDRAM, and on the page that copy is late (src/main.cpp): it lands when the next list starts, after the
+// images into RDRAM, and on the page that copy is late (src/main.cpp): it lands while the next list is drawn, after the
 // scheduler has read. So the scheduler read the samples of the list three before, from the same one of the game's three
 // buffers, taken where the lights were three frames earlier: they match while Joanna stands still, and as she walks
 // towards a light or away from it the light's depth moves past the test's tolerance and its glare flickers.
 //
 // Where the copy is late (recomp_pd_render_to_ram_late) the game here keeps four lists of glares and four sample
 // buffers, the fourth of each in the patches' RAM, and the scheduler takes the depths of the list before the one the
-// RDP is done with, whose copy landed when that one started: the pending index starts a list behind. A frame draws
+// RDP is done with, whose copy landed while that one was drawn: the pending index starts a list behind. A frame draws
 // the glares of the list three before it instead of two, and the scheduler has taken that list's depths by then, as
 // the game's own lists have theirs: a frame starts only once the list two before it is done (the main loop starts no
 // tick with two graphics tasks out). Where the copy is in place (the desktop's) the game keeps its own three lists.

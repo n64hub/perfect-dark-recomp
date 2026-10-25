@@ -1,7 +1,7 @@
 // The settings: RecompFrontend's stock General, Controls, Graphics and Sound tabs, with its default bindings but A and
 // D strafing, and the enhancements' options (README, Modern enhancements), each with a value that plays as the
 // console does:
-//  - Mouse Sensitivity, on the General tab (src/mouse.cpp, patches/mouse.c), 0% the original;
+//  - Mouse Sensitivity and Invert Mouse Y, on the General tab (src/mouse.cpp, patches/mouse.c), 0% the original;
 //  - Field of View, on the Graphics tab (patches/fov.c), Original the game's 60 degrees;
 //  - the Graphics tab's own Aspect Ratio and HUD Placement, which patches/widescreen.c follows, Original 4:3.
 // And the natives the patches read them through.

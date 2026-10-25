@@ -72,7 +72,9 @@ the console does. They are the game's own code (`patches/`, `src/`), taken from 
   The pointer is locked to the game while Mouse Sensitivity is above
   0%; the keyboard's defaults are a PC's, W and S walking, A and D strafing, the arrows turning, E or R using what
   is in front of her (a door, a console) and reloading otherwise (the game's B, which does both; held, it changes the
-  gun's function), Left Shift aiming (R), Space changing weapon (A) and Q firing (Z).
+  gun's function), Left Shift aiming (R), Space changing weapon (A) and Q firing (Z). C crouches her to a squat and
+  stands her back up, as GoldenEye64Recomp-web's Crouch does, the mouse playing or not: a key of its own that the
+  Controls tab doesn't list.
 
 Settings are saved as JSON in `%LOCALAPPDATA%\PerfectDarkRecompiled\` (`~/.config/PerfectDarkRecompiled/` on Linux).
 For the game as it shipped, set every Original value:
@@ -83,6 +85,7 @@ For the game as it shipped, set every Original value:
 | Widescreen HUD | HUD Placement | `graphics.json` `hr_option` | `"Clamp16x9"` (at most 16:9's edges; `"Expand"`: the window's) | `"Original"` |
 | Field of view | Field of View | `graphics.json` `field_of_view` | `"Original"` (`"70"`, `"80"`, `"90"`, `"100"`) | `"Original"` (60°) |
 | Mouse look and aim | Mouse Sensitivity | `general.json` `mouse_sensitivity` | `50` | `0` (no mouse) |
+| Mouse look and aim | Invert Mouse Y | `general.json` `mouse_invert_y` | `"Off"` (`"On"`: up looks down) | `"Off"` |
 | Rendering resolution | Resolution | `graphics.json` `res_option` | `"Auto"` (the window's size) | `"Original"` |
 | Anti-aliasing | MS Anti-Aliasing | `graphics.json` `msaa_option` | `"MSAA2X"` | `"None"` |
 | Smooth motion | Framerate | `graphics.json` `rr_option` | `"Display"` | `"Original"` |
@@ -94,8 +97,8 @@ Left out:
 - **A game rate above 60, or uncapped**: the game already ticks up to 60 a second (it counts each frame's length in
   VIs), and RT64 interpolates above that. Ticking faster needs the PC port's fixes to footsteps, automatic fire and
   doors, which assume at most 60.
-- **Mouse in the menus, on the hoverbike, the CamSpy and the Slayer's rocket**, an invert option, a reload key apart
-  from use and a crouch key: the game's buttons do those (the Controls tab binds them).
+- **Mouse in the menus, on the hoverbike, the CamSpy and the Slayer's rocket**, and a reload key apart from use: the
+  game's buttons do those (the Controls tab binds them).
 - **Widescreen split screen**, and the PC port's smaller options (crosshair sway, gun position, the extra HUD
   scaling).
 

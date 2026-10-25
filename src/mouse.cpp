@@ -2,13 +2,17 @@
 // mouse_keyboard.cpp. RecompFrontend locks the pointer to the game while Mouse Sensitivity is above 0% and gives a game
 // only the motion since its last controller poll, which comes every retrace while Perfect Dark ticks at 30 or less; so
 // the motion and the wheel are added up here from every SDL event, until the game's tick takes them:
-//  - the motion, scaled as the PC port scales it (0.022/3.5 a count at its default, which is 50% here);
+//  - the motion, scaled as the PC port scales it (0.022/3.5 a count at its default, which is 50% here), its up and
+//    down flipped by Invert Mouse Y, worded and stored as GoldenEye64Recomp-web's option;
 //  - the wheel's notches, up positive;
 //  - the left button as Z (fire) and the right as R (aim, and the menus' shoulder button) on controller 1 (get_input);
 //  - whether the mouse's aim is held (recomp_pd_mouse_aim_held): the right button or a key on L or R, which the
-//    patches turn into an aim that lets her walk, where a pad's L and R stay the game's aim mode.
-// Nothing reaches the game while the frontend's menus have the input or the pointer isn't locked, and what the game
-// didn't take for 100 ms (a cutscene, a pause, the radial menu) is dropped, so it doesn't turn her all at once after.
+//    patches turn into an aim that lets her walk, where a pad's L and R stay the game's aim mode;
+//  - the C key's presses (recomp_pd_crouch_take), which crouch, a key of its own as GoldenEye64Recomp-web's Crouch
+//    and the only one here that plays with the pointer free too, as the keyboard's bindings do.
+// Nothing reaches the game while the frontend's menus have the input or (but for C) the pointer isn't locked, and what
+// the game didn't take for 100 ms (a cutscene, a pause, the radial menu) is dropped, so it doesn't turn her all at once
+// after.
 
 #include <algorithm>
 #include <chrono>
@@ -33,8 +37,10 @@ namespace {
     float pending_dx = 0.0f;
     float pending_dy = 0.0f;
     int pending_wheel = 0;
+    int pending_crouch = 0;
     std::chrono::steady_clock::time_point last_take{};
     std::chrono::steady_clock::time_point last_wheel_take{};
+    std::chrono::steady_clock::time_point last_crouch_take{};
 
     bool game_has_mouse() {
         return !recompinput::game_input_disabled() && SDL_GetRelativeMouseMode() == SDL_TRUE;
@@ -56,6 +62,13 @@ namespace {
                 pending_wheel = std::clamp(pending_wheel + notches, -max_wheel, max_wheel);
             }
             break;
+        case SDL_KEYDOWN:
+            if (event->key.keysym.scancode == SDL_SCANCODE_C && !event->key.repeat
+                    && !recompinput::game_input_disabled()) {
+                std::lock_guard lock{ mutex };
+                pending_crouch++;
+            }
+            break;
         }
         return 0;
     }
@@ -70,6 +83,22 @@ namespace {
 
     constexpr uint16_t n64_button_z = 0x2000;
     constexpr uint16_t n64_button_r = 0x0010;
+
+    const std::string mouse_invert_y = "mouse_invert_y";
+    enum class InvertY {
+        Off,
+        On,
+        OptionCount
+    };
+    const std::vector<recomp::config::ConfigOptionEnumOption> invert_y_options = {
+        { InvertY::Off, "Off" },
+        { InvertY::On, "On" },
+    };
+
+    bool get_mouse_invert_y() {
+        auto value = recompui::config::get_general_config().get_option_value(mouse_invert_y);
+        return static_cast<InvertY>(std::get<uint32_t>(value)) == InvertY::On;
+    }
 }
 
 void pd::init_mouse() {
@@ -91,7 +120,7 @@ void pd::init_mouse() {
 }
 
 void pd::add_mouse_option(recomp::config::Config& general) {
-    // The frontend's own option, by its id: the frontend locks the pointer while it is above zero.
+    // The frontend's own option, by its id: the frontend locks the pointer while it is above zero. Then Invert Mouse Y.
     general.add_percent_number_option(
         recompui::config::general::options::mouse_sensitivity,
         "Mouse Sensitivity",
@@ -105,8 +134,15 @@ void pd::add_mouse_option(recomp::config::Config& general) {
         "<br />"
         "<br />"
         "E or R (B) uses what is in front of her, a door or a console, and reloads otherwise; held, it changes the "
-        "gun's function. Left Shift aims too.",
+        "gun's function. Left Shift aims too, and C crouches, or stands her back up.",
         50.0
+    );
+    general.add_enum_option(
+        mouse_invert_y,
+        "Invert Mouse Y",
+        "Moving the mouse up looks down.",
+        invert_y_options,
+        InvertY::Off
     );
 }
 
@@ -147,7 +183,7 @@ extern "C" void recomp_pd_mouse_aim_held(uint8_t* rdram, recomp_context* ctx) {
 }
 
 // recomp_pd_mouse_take(f32 *dx, f32 *dy): the motion since the last take, in the PC port's units, right and down
-// positive.
+// positive (up with Invert Mouse Y).
 extern "C" void recomp_pd_mouse_take(uint8_t* rdram, recomp_context* ctx) {
     float* dx_out = _arg<0, float*>(rdram, ctx);
     float* dy_out = _arg<1, float*>(rdram, ctx);
@@ -167,7 +203,7 @@ extern "C" void recomp_pd_mouse_take(uint8_t* rdram, recomp_context* ctx) {
     // 50% is the PC port's default, 2.5.
     float scale = (float)(recompui::config::general::get_mouse_sensitivity() / 20.0) * (0.022f / 3.5f);
     *dx_out = dx * scale;
-    *dy_out = dy * scale;
+    *dy_out = (get_mouse_invert_y() ? -dy : dy) * scale;
 }
 
 // recomp_pd_mouse_take_wheel(): the wheel's notches since the last take, up positive.
@@ -183,4 +219,19 @@ extern "C" void recomp_pd_mouse_take_wheel(uint8_t* rdram, recomp_context* ctx) 
         last_wheel_take = now;
     }
     _return<int32_t>(ctx, wheel);
+}
+
+// recomp_pd_crouch_take(): the C key's presses since the last take.
+extern "C" void recomp_pd_crouch_take(uint8_t* rdram, recomp_context* ctx) {
+    int presses = 0;
+    {
+        std::lock_guard lock{ mutex };
+        auto now = std::chrono::steady_clock::now();
+        if (now - last_crouch_take < stale) {
+            presses = pending_crouch;
+        }
+        pending_crouch = 0;
+        last_crouch_take = now;
+    }
+    _return<int32_t>(ctx, presses);
 }

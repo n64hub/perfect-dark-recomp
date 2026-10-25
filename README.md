@@ -83,6 +83,7 @@ For the game as it shipped, set every Original value:
 | Widescreen HUD | HUD Placement | `graphics.json` `hr_option` | `"Clamp16x9"` (at most 16:9's edges; `"Expand"`: the window's) | `"Original"` |
 | Field of view | Field of View | `graphics.json` `field_of_view` | `"Original"` (`"70"`, `"80"`, `"90"`, `"100"`) | `"Original"` (60°) |
 | Mouse look and aim | Mouse Sensitivity | `general.json` `mouse_sensitivity` | `50` | `0` (no mouse) |
+| Mouse look and aim | Invert Mouse Y | `general.json` `mouse_invert_y` | `"Off"` (`"On"`: up looks down) | `"Off"` |
 | Rendering resolution | Resolution | `graphics.json` `res_option` | `"Auto"` (the window's size) | `"Original"` |
 | Anti-aliasing | MS Anti-Aliasing | `graphics.json` `msaa_option` | `"MSAA2X"` | `"None"` |
 | Smooth motion | Framerate | `graphics.json` `rr_option` | `"Display"` | `"Original"` |
@@ -94,8 +95,8 @@ Left out:
 - **A game rate above 60, or uncapped**: the game already ticks up to 60 a second (it counts each frame's length in
   VIs), and RT64 interpolates above that. Ticking faster needs the PC port's fixes to footsteps, automatic fire and
   doors, which assume at most 60.
-- **Mouse in the menus, on the hoverbike, the CamSpy and the Slayer's rocket**, an invert option, a reload key apart
-  from use and a crouch key: the game's buttons do those (the Controls tab binds them).
+- **Mouse in the menus, on the hoverbike, the CamSpy and the Slayer's rocket**, a reload key apart from use and a
+  crouch key: the game's buttons do those (the Controls tab binds them).
 - **Widescreen split screen**, and the PC port's smaller options (crosshair sway, gun position, the extra HUD
   scaling).
 

@@ -27,7 +27,7 @@ void recomp_pd_read_rom(u32 offset, u32 *dst);
 s32 recomp_pd_motor_init(OSMesgQueue *mq, OSPfs *pfs, s32 channel);
 // Whether the mouse plays (src/mouse.cpp): Mouse Sensitivity above 0% and the pointer locked to the game.
 s32 recomp_pd_mouse_playing(void);
-// The mouse's motion since the last take, in the PC port's units, right and down positive.
+// The mouse's motion since the last take, in the PC port's units, right and down positive (up with Invert Mouse Y).
 void recomp_pd_mouse_take(f32 *dx, f32 *dy);
 // The wheel's notches since the last take, up positive.
 s32 recomp_pd_mouse_take_wheel(void);

@@ -22,6 +22,7 @@
 //    aim mode.
 //  - Look Ahead, which levels the view while she walks, is off: it would fight the mouse (bmove_set_automovecentre_enabled).
 // The buttons are src/mouse.cpp's: left is Z (fire), right is R (aim, and the menus' shoulder button).
+// And the C key crouches, as GoldenEye64Recomp-web's Crouch does, the mouse playing or not (crouch_tick).
 
 #include "patches.h"
 #include "game/bondmove.h"
@@ -186,6 +187,25 @@ static void mouse_turn(f32 theta, f32 verta)
 	}
 }
 
+// The C key (src/mouse.cpp): a press squats Joanna, from standing or kneeling, and the next stands her back up, where the
+// game's own crouch steps a position a press of C-down or C-up in aim mode (bmove_process_input). Only as she walks:
+// a press in a cutscene, a pause or the radial menu is dropped.
+static void crouch_tick(bool allowc1buttons)
+{
+	struct player *player = g_Vars.currentplayer;
+	s32 presses = recomp_pd_crouch_take();
+
+	if (!allowc1buttons || player->bondmovemode != MOVEMODE_WALK || player->isdead
+			|| player->pausemode != PAUSEMODE_UNPAUSED) {
+		return;
+	}
+
+	for (; presses > 0; presses--) {
+		bwalk_adjust_crouch_pos(player->crouchpos == CROUCHPOS_SQUAT
+				? CROUCHPOS_STAND - CROUCHPOS_SQUAT : CROUCHPOS_SQUAT - CROUCHPOS_STAND);
+	}
+}
+
 static void mouse_tick(bool allowc1x, bool allowc1y, bool allowc1buttons)
 {
 	struct player *player = g_Vars.currentplayer;
@@ -260,6 +280,11 @@ RECOMP_PATCH void bmove_tick(bool allowc1x, bool allowc1y, bool allowc1buttons, 
 
 	if (mouse) {
 		mouse_tick(allowc1x, allowc1y, allowc1buttons);
+	}
+
+	// @recomp: the C key crouches player 1.
+	if (g_Vars.currentplayernum == 0) {
+		crouch_tick(allowc1buttons);
 	}
 
 	if (g_Vars.currentplayer->bondmovemode == MOVEMODE_BIKE) {

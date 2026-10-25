@@ -33,6 +33,8 @@ void recomp_pd_mouse_take(f32 *dx, f32 *dy);
 s32 recomp_pd_mouse_take_wheel(void);
 // Whether the mouse's aim is held: the right button, or a key bound to L or R (Left Shift), not a pad's L or R.
 s32 recomp_pd_mouse_aim_held(void);
+// The C key's presses since the last take, each a crouch or a stand (patches/mouse.c), the mouse playing or not.
+s32 recomp_pd_crouch_take(void);
 // Field of View (src/config.cpp): the angle the player's view is drawn with for one the game sets, in degrees.
 f32 recomp_pd_widen_fov(f32 fovy);
 // Aspect Ratio (src/config.cpp): the window's width over its height with Expand, at least the one given; with Original

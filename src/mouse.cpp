@@ -7,9 +7,12 @@
 //  - the wheel's notches, up positive;
 //  - the left button as Z (fire) and the right as R (aim, and the menus' shoulder button) on controller 1 (get_input);
 //  - whether the mouse's aim is held (recomp_pd_mouse_aim_held): the right button or a key on L or R, which the
-//    patches turn into an aim that lets her walk, where a pad's L and R stay the game's aim mode.
-// Nothing reaches the game while the frontend's menus have the input or the pointer isn't locked, and what the game
-// didn't take for 100 ms (a cutscene, a pause, the radial menu) is dropped, so it doesn't turn her all at once after.
+//    patches turn into an aim that lets her walk, where a pad's L and R stay the game's aim mode;
+//  - the C key's presses (recomp_pd_crouch_take), which crouch, a key of its own as GoldenEye64Recomp-web's Crouch
+//    and the only one here that plays with the pointer free too, as the keyboard's bindings do.
+// Nothing reaches the game while the frontend's menus have the input or (but for C) the pointer isn't locked, and what
+// the game didn't take for 100 ms (a cutscene, a pause, the radial menu) is dropped, so it doesn't turn her all at once
+// after.
 
 #include <algorithm>
 #include <chrono>
@@ -34,8 +37,10 @@ namespace {
     float pending_dx = 0.0f;
     float pending_dy = 0.0f;
     int pending_wheel = 0;
+    int pending_crouch = 0;
     std::chrono::steady_clock::time_point last_take{};
     std::chrono::steady_clock::time_point last_wheel_take{};
+    std::chrono::steady_clock::time_point last_crouch_take{};
 
     bool game_has_mouse() {
         return !recompinput::game_input_disabled() && SDL_GetRelativeMouseMode() == SDL_TRUE;
@@ -55,6 +60,13 @@ namespace {
                 int notches = (event->wheel.direction == SDL_MOUSEWHEEL_FLIPPED) ? -event->wheel.y : event->wheel.y;
                 std::lock_guard lock{ mutex };
                 pending_wheel = std::clamp(pending_wheel + notches, -max_wheel, max_wheel);
+            }
+            break;
+        case SDL_KEYDOWN:
+            if (event->key.keysym.scancode == SDL_SCANCODE_C && !event->key.repeat
+                    && !recompinput::game_input_disabled()) {
+                std::lock_guard lock{ mutex };
+                pending_crouch++;
             }
             break;
         }
@@ -122,7 +134,7 @@ void pd::add_mouse_option(recomp::config::Config& general) {
         "<br />"
         "<br />"
         "E or R (B) uses what is in front of her, a door or a console, and reloads otherwise; held, it changes the "
-        "gun's function. Left Shift aims too.",
+        "gun's function. Left Shift aims too, and C crouches, or stands her back up.",
         50.0
     );
     general.add_enum_option(
@@ -207,4 +219,19 @@ extern "C" void recomp_pd_mouse_take_wheel(uint8_t* rdram, recomp_context* ctx) 
         last_wheel_take = now;
     }
     _return<int32_t>(ctx, wheel);
+}
+
+// recomp_pd_crouch_take(): the C key's presses since the last take.
+extern "C" void recomp_pd_crouch_take(uint8_t* rdram, recomp_context* ctx) {
+    int presses = 0;
+    {
+        std::lock_guard lock{ mutex };
+        auto now = std::chrono::steady_clock::now();
+        if (now - last_crouch_take < stale) {
+            presses = pending_crouch;
+        }
+        pending_crouch = 0;
+        last_crouch_take = now;
+    }
+    _return<int32_t>(ctx, presses);
 }

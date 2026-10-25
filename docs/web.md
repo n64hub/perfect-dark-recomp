@@ -80,7 +80,7 @@ report). The mouse in a player's browser, headed, hasn't been played.
 ## The light glares
 
 A light's glare shows where the depth under it, which the scheduler reads from RDRAM when the RDP is done with a
-display list, is the light's own. On the page render to RAM's copy into RDRAM lands when the next list starts
+display list, is the light's own. On the page render to RAM's copy into RDRAM lands while the next list is drawn
 (`src/main.cpp`), so the scheduler read each list's depth samples before they were there, those of the list three
 before it, and a glare flickered as Joanna walked towards its light or away. `patches/artifacts.c` reads them a list
 later on the page, in a fourth list (its header says how). A probe that read each sample the scheduler had taken

@@ -26,6 +26,10 @@
 // Draining the retraces queued in main_loop instead wouldn't do: the next tick would start at the RDP done of the task
 // just submitted, before the next VI, and miss its sample as well.
 //
+// On the page, while the game can't keep 60 up (a phone's CPU), its ticks are held to every other VI and each frame
+// says 30 (recomp_pd_hold_at_30, src/pd_natives.cpp, which says when): mixing frames of one and two VIs, the fastest of
+// three reads 60 and RT64 draws about one frame for each, where at 30 each gets two.
+//
 // main_tick is src/lib/main.c's, as the decompilation builds it for ntsc-final (no DEBUG), with those two commands put
 // at the start of the frame's display list with the matrix groups after them (patches/origin_interpolation.c), the
 // survey's tick before it (patches/shader_survey.c) and the put-off tick.
@@ -75,6 +79,7 @@ extern u32 var8005eec0;
 static bool s_TickPutOff = false;
 static u32 s_TickPutOffAt;
 static s32 s_RecentRetraces[3];
+static s32 s_HeldAt30 = false;
 
 RECOMP_PATCH void main_tick(void)
 {
@@ -87,6 +92,12 @@ RECOMP_PATCH void main_tick(void)
 	shader_survey_tick();
 
 	if (g_MainChangeToStageNum < 0 && g_MainNumGfxTasks < NUM_GFXTASKS) {
+		// @recomp: held to 30, a tick only at a retrace a VI and a half or more after the last one started, as
+		// main_loop starts one with g_Vars.mininc60 at 2 (which frametime_calculate would wait out in a loop).
+		if (s_HeldAt30 && osGetCount() - g_Vars.thisframestartt < CYCLES_PER_FRAME * 3 / 2) {
+			return;
+		}
+
 		// @recomp: no sample newer than the last tick's, with a poll out that brings one at the next VI: wait for it,
 		// two VIs at most, where joy_debug_joy would restart the polling.
 		if (joy_is_cyclic_polling_enabled() && var8005eec0 && g_JoyBusy
@@ -102,6 +113,7 @@ RECOMP_PATCH void main_tick(void)
 		}
 
 		s_TickPutOff = false;
+		s_HeldAt30 = recomp_pd_hold_at_30();
 		frametime_calculate();
 		profile00009a98();
 		profile_reset();
@@ -125,6 +137,10 @@ RECOMP_PATCH void main_tick(void)
 					if (s_RecentRetraces[i] > 0 && s_RecentRetraces[i] < fewest) {
 						fewest = s_RecentRetraces[i];
 					}
+				}
+
+				if (s_HeldAt30 && fewest < 2) {
+					fewest = 2;
 				}
 
 				gEXEnable(gdl++);

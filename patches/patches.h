@@ -40,5 +40,8 @@ f32 recomp_pd_widen_fov(f32 fovy);
 f32 recomp_pd_get_aspect_ratio(f32 original);
 // Whether render to RAM's copy into RDRAM lands a display list late (src/main.cpp): 1 on the page, 0 on the desktop.
 s32 recomp_pd_render_to_ram_late(void);
+// Whether the game's ticks are held to every other VI (src/pd_natives.cpp, patches/frame_rate.c): called once a tick,
+// which it counts. On the page while the game can't keep 60 up, never on the desktop.
+s32 recomp_pd_hold_at_30(void);
 
 #endif

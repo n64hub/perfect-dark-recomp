@@ -198,3 +198,12 @@ served, Defection's opening cutscene watched for 60 s in headless Chrome on a de
 in whole GPU turns (N64Recomp-browser's `plays.jsonl`, set `pd-cutscene-rumble`): no frame of 7-8 VIs in either
 play of the build against 17 and 14, and 1 present gap over 100 ms in each (the mission's load) against 10 and 12;
 no WebGPU errors, no shader missed.
+
+A phone's CPU holds the game to 25-33 frames a second (N64Recomp-browser's docs/phones.md), and those mix frames of
+one and two VIs, which the fastest of three tells RT64 are 60: RT64 drew about one frame for each, 46-47 a second. So
+on the page, while the game can't keep 60 up, its ticks are held to every other VI and each frame says 30
+(`recomp_pd_hold_at_30`, `src/pd_natives.cpp`, says when; `patches/frame_rate.c`). The intro on a Galaxy S21 in
+Chrome, 140 s from Start Game with no input, with and without it, interleaved, big cores capped at 1.04 GHz: drawn
+51.5 and 54.4 a second against 45.9 and 46.8, presents 49.5 and 48.8 over the last minute against 44.2 and 46.6, and
+55-57 over the whole intro against 50-52. The desktop page, the regular plan uncapped on a desktop GPU, held once, for
+10 s in Defection's firing (two seconds of 50 frames); presents 354 against 356, both at the uncapped rate.

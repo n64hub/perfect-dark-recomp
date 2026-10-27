@@ -26,7 +26,8 @@
 # to its end and plays its endscreen, missed 80 more in twelve missions (Defection 7, Investigation 1, Villa 5,
 # Chicago 13, Infiltration 15, Rescue 1, Escape 2, Air Base 11, Air Force One 1, Defense 3, Attack Ship 7, Skedar
 # Ruins 14), nearly the same ones in Chrome and Firefox, and its next run in each, with them, 2 more (Chicago 1,
-# Rescue 1).
+# Rescue 1). Then the night vision goggles put on at Extraction's start (the one mission that gives them, which no
+# plan put on) missed 6, the view drawn through the ubershader for as long as they were on.
 # A new recording drops them unless they are added again.
 00504240 0080eccf fcff97ff ff2dfeff 04cb540b
 00504240 0089ec4f fcffffff fffdf6fb 1cc9540b
@@ -283,6 +284,12 @@ c41049d8 00992cff fc26a004 1f1093ff 1806008c
 005049d8 00882c8f fc121824 ff33ffff 0ccb5408
 c4112078 0099ac4f fc26a004 1f1093fb 1807100c
 c4104dd8 00992c4f fc26a004 1f1093fb 1807540c
+00404340 00800cef fc12fe25 fffffbfd 0003540b
+0c184340 00900cef fc117e05 fffffbfd 0187140b
+00504240 00802cef fcffffff fffdf6fb 0800000b
+00504240 00892c6f fcffffff fffdf6fb 1cc9550b
+00504240 0090ecef fc54ffff 3f15f23f 04cf542b
+00504240 0080ecef fcffffff fffdf6fb 0800000b
 section villa
 0f0a4000 00882c0f fcffffff fffe793c 08000008
 00552048 00882c0f fc40fe81 55fef97c 088a0008

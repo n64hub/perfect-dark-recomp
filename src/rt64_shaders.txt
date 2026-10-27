@@ -27,7 +27,10 @@
 # Chicago 13, Infiltration 15, Rescue 1, Escape 2, Air Base 11, Air Force One 1, Defense 3, Attack Ship 7, Skedar
 # Ruins 14), nearly the same ones in Chrome and Firefox, and its next run in each, with them, 2 more (Chicago 1,
 # Rescue 1). Then the night vision goggles put on at Extraction's start (the one mission that gives them, which no
-# plan put on) missed 6, and with those 2 more.
+# plan put on) missed 6, and with those 2 more. Then the IR scanner put on in Deep Sea and Skedar Ruins (which give
+# it, as the Carrington Institute's training does) missed 4, the same in Chrome and Firefox: its lens's rows (which
+# Infiltration's intro, its film interlace, missed too) and its rectangle, 2 any level needs, above the first section,
+# and 1 in each. And Air Base's intro, its horizon scanner, missed 1.
 # A new recording drops them unless they are added again.
 00504240 0080eccf fcff97ff ff2dfeff 04cb540b
 00504240 0089ec4f fcffffff fffdf6fb 1cc9540b
@@ -73,6 +76,8 @@ c4112078 0098ac4f fc159804 5ffedbf8 0803100c
 005041c8 00808ccf fc129a25 ff37ffff 0003540b
 005041c8 0089ec4f fcffffff fffe793c 1cc95408
 0c1841c8 00982c0f fc252604 1f1093ff 0c8f400c
+00404340 00800cef fc12fe25 fffffbfd 0003550b
+00504240 00800cef fcffffff fffdf6fb 0800000b
 section defection
 00502048 00882c4f fc127e24 fffff9fc 0803540c
 0c182078 0099ac4f fc26a004 1f1093ff 1806440c
@@ -939,6 +944,7 @@ c4112078 0099ac4f fc26a004 1f1093fb 1a262208
 c41049d8 0099ac4f fc26a004 1f1093fb 1ccf540c
 c41049d8 0099ac4f fc26a004 1f1093fb 1806008c
 c41049d8 0099ac4f fc26a004 1f1093fb 188e000c
+00404340 00800cef fc12fe25 fffffbfd 0803540b
 section airforceone
 0f0a4000 0099ac0f fc121824 ff33ffff 188e0008
 00552048 00882c0f fc40fe81 55fef97c 088a0008
@@ -1227,6 +1233,7 @@ c41049d8 00992cff fc26a004 1f1093ff 1806008c
 0c184b50 00982c4f fc111404 ff13ffff 08075408
 004049d8 00882ccf fcff99ff ff327f3f 0ccb5408
 0c184dd8 00992c8f fc26a004 1f1093ff 1807540c
+00504240 0080ecef fcff97ff ff2dfeff 04cb540b
 section defense
 c4112078 0099ac0f fc159804 5ffedbf8 1ccb5408
 c4112078 0098ac0f fc159804 5ffedbf8 0803540c
@@ -1486,6 +1493,7 @@ c41049d8 00982c4f fc159804 5ffedbf8 088a0008
 00504240 0080eccf fcff97ff ff2dfeff 0ccb5408
 00504240 00992c0f fc26a004 1f1093ff 1aaeaa28
 00504240 00992c0f fc26a004 1f1093ff 188e0028
+00504340 0081ecef fcffffff fffdf6fb 1cc9540b
 section mbr
 00502048 00882c0f fc127e24 fffff9fc 0803540c
 c4112078 0099ac0f fc159804 5ffedbf8 18035408

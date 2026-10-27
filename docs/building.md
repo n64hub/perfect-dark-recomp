@@ -294,6 +294,12 @@ archive holds and what publishing checks first.
   with the world shifted by part of the jump (through a door, the room beyond gone to the clear colour for a frame).
   Each frame's display list starts with the matrix groups RT64 gives untagged matrices, with an id that changes when
   the origin moves, so that frame is shown as it is.
+- **The IR scanner's lens** (`patches/ir_lens.c`): the game copies the view into itself a row at a time, and a row
+  that crosses the semicircle in the middle in three pieces, each loaded from mid-row after a draw into that row.
+  RT64 found no copy of the framebuffer on the GPU for those pieces and waited for it in RAM for each one, so the game
+  drew 2 frames a second on the page with the IR scanner on. The patch loads such a row once and draws the pieces from
+  it. Every other full-screen effect (the goggles, the X-ray and combat boost blurs, the Slayer's and the cutscenes'
+  interlace, CamSpy's fisheye, the horizon scanner) loads its rows whole, which RT64 draws from that copy.
 
 ### Not done yet
 

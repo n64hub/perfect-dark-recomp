@@ -75,6 +75,10 @@ the console does. They are the game's own code (`patches/`, `src/`), taken from 
   gun's function), Left Shift aiming (R), Space changing weapon (A) and Q firing (Z). C crouches her to a squat and
   stands her back up, as GoldenEye64Recomp-web's Crouch does, the mouse playing or not: a key of its own that the
   Controls tab doesn't list.
+- Up to four people play four players (Combat Simulator, Co-Operative, Counter-Operative), each with a pad of their
+  own or the keyboard: open the menu (Esc), and on Controls press Assign players, then a button on each player's pad
+  (or a key) in the players' order, and Confirm. Until then every pad and the keyboard play as one, as for a player
+  alone; after, the keyboard stays player 1's unless a player was given it.
 
 Settings are saved as JSON in `%LOCALAPPDATA%\PerfectDarkRecompiled\` (`~/.config/PerfectDarkRecompiled/` on Linux).
 For the game as it shipped, set every Original value:

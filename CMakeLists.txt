@@ -325,6 +325,10 @@ endif()
 set(RECOMP_FRONTEND_N64MODERNRUNTIME_PATH ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime)
 set(RECOMP_FRONTEND_RT64_PATH ${CMAKE_SOURCE_DIR}/lib/rt64)
 
+# The game turns RecompFrontend's single-player mode off, so that four people play four players (src/main.cpp), and
+# plays as single-player mode until players are assigned, as with Emscripten: without it a player alone needed to
+# assign their pad or keyboard first, and the keyboard played every pad's player.
+set(RECOMPINPUT_SINGLE_PLAYER_UNTIL_ASSIGNED ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/RecompFrontend)
 
 # PatchesLib before RecompiledFuncs: a patch (RECOMP_PATCH) has the name of the game function it replaces, and every

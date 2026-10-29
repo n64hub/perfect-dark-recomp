@@ -5,9 +5,12 @@
 //  - the motion, scaled as the PC port scales it (0.022/3.5 a count at its default, which is 50% here), its up and
 //    down flipped by Invert Mouse Y, worded and stored as GoldenEye64Recomp-web's option;
 //  - the wheel's notches, up positive;
-//  - the left button as Z (fire) and the right as R (aim, and the menus' shoulder button) on controller 1 (get_input);
-//  - whether the mouse's aim is held (recomp_pd_mouse_aim_held): the right button or a key on L or R, which the
-//    patches turn into an aim that lets her walk, where a pad's L and R stay the game's aim mode;
+//  - the port the keyboard and mouse play (recomp_pd_keyboard_port): the player assigned the keyboard on the controls
+//    page's Assign players, or player 1 while nobody has it, as RecompFrontend's keyboard plays;
+//  - the left button as Z (fire) and the right as R (aim, and the menus' shoulder button) on that port (get_input);
+//  - whether the mouse's aim is held (recomp_pd_mouse_aim_held): the right button or a key on L or R in that player's
+//    keyboard profile, which the patches turn into an aim that lets her walk, where a pad's L and R stay the game's
+//    aim mode;
 //  - the C key's presses (recomp_pd_crouch_take), which crouch, a key of its own as GoldenEye64Recomp-web's Crouch
 //    and the only one here that plays with the pointer free too, as the keyboard's bindings do.
 // Nothing reaches the game while the frontend's menus have the input or (but for C) the pointer isn't locked, and what
@@ -23,6 +26,7 @@
 #include "recomp.h"
 #include "librecomp/helpers.hpp"
 #include "recompinput/input_mapping.h"
+#include "recompinput/players.h"
 #include "recompinput/profiles.h"
 #include "recompinput/recompinput.h"
 #include "recompui/config.h"
@@ -44,6 +48,27 @@ namespace {
 
     bool game_has_mouse() {
         return !recompinput::game_input_disabled() && SDL_GetRelativeMouseMode() == SDL_TRUE;
+    }
+
+    // The port the keyboard plays: the player assigned it, or player 1 while nobody has it or players aren't assigned.
+    int keyboard_port() {
+        using namespace recompinput;
+        if (!players::is_single_player_mode()) {
+            for (size_t i = 0; i < players::get_number_of_assigned_players(); i++) {
+                if (players::get_player_input_device((int)i) == InputDevice::Keyboard) {
+                    return (int)i;
+                }
+            }
+        }
+        return 0;
+    }
+
+    // The keyboard's profile on that port: single-player mode's keys until players are assigned.
+    int keyboard_profile(int port) {
+        using namespace recompinput;
+        return players::is_single_player_mode()
+            ? profiles::get_sp_keyboard_profile_index()
+            : profiles::get_input_profile_for_player(port, InputDevice::Keyboard);
     }
 
     int watch_events(void*, SDL_Event* event) {
@@ -148,7 +173,7 @@ void pd::add_mouse_option(recomp::config::Config& general) {
 
 bool pd::get_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out) {
     bool ret = recompinput::profiles::get_n64_input(controller_num, buttons_out, x_out, y_out);
-    if (controller_num == 0 && game_has_mouse()) {
+    if (controller_num == keyboard_port() && game_has_mouse()) {
         uint32_t mouse = SDL_GetMouseState(nullptr, nullptr);
         if (mouse & SDL_BUTTON(SDL_BUTTON_LEFT)) {
             *buttons_out |= n64_button_z;
@@ -165,17 +190,24 @@ extern "C" void recomp_pd_mouse_playing(uint8_t* rdram, recomp_context* ctx) {
     _return<int32_t>(ctx, recompui::config::general::get_mouse_sensitivity() > 0.0 && game_has_mouse() ? 1 : 0);
 }
 
-// recomp_pd_mouse_aim_held(): whether the mouse's aim is held: the right button, or a key bound to L or R (Left Shift),
-// while the mouse plays. Not a pad's L or R, which stay the game's aim mode, the stick moving its crosshair.
+// recomp_pd_keyboard_port(): the port the keyboard and mouse play, 0-3.
+extern "C" void recomp_pd_keyboard_port(uint8_t* rdram, recomp_context* ctx) {
+    _return<int32_t>(ctx, keyboard_port());
+}
+
+// recomp_pd_mouse_aim_held(): whether the mouse's aim is held: the right button, or a key bound to L or R (Left Shift)
+// in the keyboard's profile, while the mouse plays. Not a pad's L or R, which stay the game's aim mode, the stick
+// moving its crosshair.
 extern "C" void recomp_pd_mouse_aim_held(uint8_t* rdram, recomp_context* ctx) {
     using recompinput::GameInput;
     bool held = false;
     if (game_has_mouse()) {
         held = (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-        int profile = recompinput::profiles::get_sp_keyboard_profile_index();
+        int port = keyboard_port();
+        int profile = keyboard_profile(port);
         for (size_t i = 0; profile >= 0 && i < recompinput::num_bindings_per_input; i++) {
             for (GameInput input : { GameInput::L, GameInput::R }) {
-                held |= recompinput::get_input_digital(0, recompinput::profiles::get_input_binding(profile, input, i));
+                held |= recompinput::get_input_digital(port, recompinput::profiles::get_input_binding(profile, input, i));
             }
         }
     }

@@ -1,7 +1,8 @@
 // Mouse look and aim, as the decompilation's PC port plays them (its port/src/input.c and src/game/bondmove.c) and as
 // GoldenEye64Recomp-web's mouse aims: the game's side, src/mouse.cpp the program's. Only while the mouse plays
 // (recomp_pd_mouse_playing: Mouse Sensitivity above 0% and the pointer locked to the game, src/mouse.cpp), and only for
-// player 1; otherwise each function here is the decompilation's.
+// the player on the keyboard's port (recomp_pd_keyboard_port: the player assigned the keyboard on the controls page, or
+// player 1 while nobody has it); otherwise each function here is the decompilation's.
 //  - Look: the motion turns Joanna and tilts her view, aiming or not, a count by 0.055 degrees at 50% (the PC port's
 //    default) times the field of view over 60, so finer when zoomed. Applied after the game's input (bmove_tick) as a
 //    turn of its own, so it stays out of the stick's turn speed and the crosshair's and gun's sway that follows it. The
@@ -22,7 +23,7 @@
 //    aim mode.
 //  - Look Ahead, which levels the view while she walks, is off: it would fight the mouse (bmove_set_automovecentre_enabled).
 // The buttons are src/mouse.cpp's: left is Z (fire), right is R (aim, and the menus' shoulder button).
-// And the C key crouches, as GoldenEye64Recomp-web's Crouch does, the mouse playing or not (crouch_tick).
+// And the C key crouches that player, as GoldenEye64Recomp-web's Crouch does, the mouse playing or not (crouch_tick).
 
 #include "patches.h"
 #include "game/bondmove.h"
@@ -48,21 +49,28 @@ bool bmove_is_autoaim_y_enabled(void);
 f32 player_get_zoom_fov_y(void);
 void player_set_zoom_fov_y(f32 fovy, f32 timemax);
 
-// The motion player 1's tick took, in the PC port's units (src/mouse.cpp), until the look uses it.
+// The motion the keyboard player's tick took, in the PC port's units (src/mouse.cpp), until the look uses it.
 static f32 s_MouseDx;
 static f32 s_MouseDy;
 // Whether the mouse aims this tick, and whether its aim was held the tick before (for Toggle).
 static bool s_MouseAiming;
 static bool s_MouseAimWasHeld;
 
+// Whether the current player is the keyboard's: the port the game reads their controller from (bmove_process_input),
+// player i's in a Combat Simulator match, 1 and 2's in co-op and counter-op, 1's alone, is the keyboard's.
+static bool keyboard_plays_current_player(void)
+{
+	return options_get_contpad_num1(g_Vars.currentplayerstats->mpindex) == recomp_pd_keyboard_port();
+}
+
 static bool mouse_plays_for_current_player(void)
 {
-	return g_Vars.currentplayernum == 0 && recomp_pd_mouse_playing();
+	return recomp_pd_mouse_playing() && keyboard_plays_current_player();
 }
 
 static bool mouse_aiming(void)
 {
-	return g_Vars.currentplayernum == 0 && s_MouseAiming;
+	return s_MouseAiming && keyboard_plays_current_player();
 }
 
 // Before bmove_process_input: whether the mouse aims this tick, and while it does, the game's aim buttons held back
@@ -101,7 +109,7 @@ static void mouse_aim_update(bool allowc1buttons)
 RECOMP_PATCH void bmove_set_automovecentre_enabled(bool enabled)
 {
 	// @recomp: Look Ahead is off while the mouse plays.
-	g_Vars.currentplayer->automovecentreenabled = enabled && !recomp_pd_mouse_playing();
+	g_Vars.currentplayer->automovecentreenabled = enabled && !mouse_plays_for_current_player();
 }
 
 RECOMP_PATCH bool bmove_is_in_sight_aim_mode(void)
@@ -262,16 +270,17 @@ RECOMP_PATCH void bmove_tick(bool allowc1x, bool allowc1y, bool allowc1buttons, 
 	f32 ydiff;
 	f32 zdiff;
 	f32 distance;
-	bool mouse = mouse_plays_for_current_player();
+	bool keyboard = keyboard_plays_current_player();
+	bool mouse = keyboard && recomp_pd_mouse_playing();
 
-	// @recomp: the mouse's motion since player 1's last tick, for the look, and whether it aims.
+	// @recomp: the mouse's motion since the keyboard player's last tick, for the look, and whether it aims.
 	s_MouseDx = 0;
 	s_MouseDy = 0;
 
 	if (mouse) {
 		recomp_pd_mouse_take(&s_MouseDx, &s_MouseDy);
 		mouse_aim_update(allowc1buttons);
-	} else if (g_Vars.currentplayernum == 0) {
+	} else if (keyboard) {
 		s_MouseAiming = false;
 		s_MouseAimWasHeld = false;
 	}
@@ -282,8 +291,8 @@ RECOMP_PATCH void bmove_tick(bool allowc1x, bool allowc1y, bool allowc1buttons, 
 		mouse_tick(allowc1x, allowc1y, allowc1buttons);
 	}
 
-	// @recomp: the C key crouches player 1.
-	if (g_Vars.currentplayernum == 0) {
+	// @recomp: the C key crouches the keyboard player.
+	if (keyboard) {
 		crouch_tick(allowc1buttons);
 	}
 

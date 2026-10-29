@@ -31,6 +31,9 @@ s32 recomp_pd_mouse_playing(void);
 void recomp_pd_mouse_take(f32 *dx, f32 *dy);
 // The wheel's notches since the last take, up positive.
 s32 recomp_pd_mouse_take_wheel(void);
+// The port the keyboard and mouse play, 0-3: the player assigned the keyboard on the controls page, or player 1 while
+// nobody has it (src/mouse.cpp).
+s32 recomp_pd_keyboard_port(void);
 // Whether the mouse's aim is held: the right button, or a key bound to L or R (Left Shift), not a pad's L or R.
 s32 recomp_pd_mouse_aim_held(void);
 // The C key's presses since the last take, each a crouch or a stand (patches/mouse.c), the mouse playing or not.

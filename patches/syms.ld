@@ -13,3 +13,4 @@ recomp_pd_mouse_aim_held = 0x8F000024;
 recomp_pd_render_to_ram_late = 0x8F000028;
 recomp_pd_hold_at_30 = 0x8F00002C;
 recomp_pd_crouch_take = 0x8F000030;
+recomp_pd_keyboard_port = 0x8F000034;

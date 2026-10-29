@@ -445,7 +445,12 @@ int main(int argc, char** argv) {
     pd::register_overlays();
     pd::register_patches();
 
-    recompinput::players::set_single_player_mode(true);
+    // Up to four players, each assigned a pad (or the keyboard) on the controls page's Assign players, which is then
+    // their own port (get_connected_device_info): four people play four players. Until players are assigned every pad and
+    // the keyboard play as one on every port, as in single-player mode, with RECOMPINPUT_SINGLE_PLAYER_UNTIL_ASSIGNED
+    // (CMakeLists.txt).
+    recompinput::players::set_single_player_mode(false);
+    recompinput::players::set_player_count_range(1, 4);
 
     pd::init_config();
 

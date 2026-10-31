@@ -75,11 +75,13 @@ the console does. They are the game's own code (`patches/`, `src/`), taken from 
   gun's function), Left Shift aiming (R), Space changing weapon (A) and Q firing (Z). C crouches her to a squat and
   stands her back up, as GoldenEye64Recomp-web's Crouch does, the mouse playing or not: a key of its own that the
   Controls tab doesn't list.
-- Up to four people play four players (Combat Simulator, Co-Operative, Counter-Operative), each with a pad of their
-  own or the keyboard: open the menu (Esc), and on Controls press Assign players, then a button on each player's pad
-  (or a key) in the players' order, and Confirm. Until then every pad and the keyboard play as one, as for a player
-  alone; after, the keyboard stays player 1's unless a player was given it, and the mouse's look and aim and C's
-  crouch go with the keyboard.
+- Up to four people play four players (Combat Simulator, Co-Operative, Counter-Operative), each with a pad of their own
+  or the keyboard: each pad plays a player of its own with no setup, in the order the pads were plugged in, and the
+  keyboard plays player 1 beside the first pad. To choose who plays which, open the menu (Esc), and on Controls press
+  Assign players, then a button on each player's pad (or a key) in the players' order, and Confirm; after, the keyboard
+  stays player 1's unless a player was given it, and the mouse's look and aim and C's crouch go with the keyboard. As on
+  a console, a player joins only from a port with a pad (Co-Operative and Counter-Operative need a second one), and the
+  game looks for them as a stage loads.
 
 Settings are saved as JSON in `%LOCALAPPDATA%\PerfectDarkRecompiled\` (`~/.config/PerfectDarkRecompiled/` on Linux).
 For the game as it shipped, set every Original value:

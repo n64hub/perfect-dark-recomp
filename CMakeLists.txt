@@ -329,6 +329,9 @@ set(RECOMP_FRONTEND_RT64_PATH ${CMAKE_SOURCE_DIR}/lib/rt64)
 # plays as single-player mode until players are assigned, as with Emscripten: without it a player alone needed to
 # assign their pad or keyboard first, and the keyboard played every pad's player.
 set(RECOMPINPUT_SINGLE_PLAYER_UNTIL_ASSIGNED ON CACHE BOOL "" FORCE)
+# And until then each pad plays a port of its own, in the order they were connected, the keyboard port 1
+# (RecompFrontend-web's option): four people with four pads play four players without assigning them.
+set(RECOMPINPUT_PADS_IN_ORDER ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/RecompFrontend)
 
 # PatchesLib before RecompiledFuncs: a patch (RECOMP_PATCH) has the name of the game function it replaces, and every

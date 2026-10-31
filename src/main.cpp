@@ -59,7 +59,7 @@
 #endif
 
 
-const std::string version_string = "0.1.0";
+const std::string version_string = "0.1.1";
 
 template<typename... Ts>
 void exit_error(const char* str, Ts ...args) {
@@ -90,8 +90,13 @@ ultramodern::gfx_callbacks_t::gfx_data_t create_gfx() {
     return {};
 }
 
+// A port has a controller when its player is assigned, or until players are assigned when it is port 1 or a connected
+// pad's (RECOMPINPUT_PADS_IN_ORDER: the second pad connected plays port 2, and so on), as a console has a controller
+// in each port a pad is plugged into: the game offers players for those ports alone.
 ultramodern::input::connected_device_info_t get_connected_device_info(int controller_num) {
-    if (recompinput::players::is_single_player_mode() || recompinput::players::get_player_is_assigned(controller_num)) {
+    bool unassigned = recompinput::players::get_number_of_assigned_players() == 0;
+    if ((unassigned && (controller_num == 0 || (size_t)controller_num < recompinput::get_detected_controller_count())) ||
+        recompinput::players::get_player_is_assigned(controller_num)) {
         return ultramodern::input::connected_device_info_t{
             .connected_device = ultramodern::input::Device::Controller,
             .connected_pak = ultramodern::input::Pak::RumblePak,
@@ -446,9 +451,9 @@ int main(int argc, char** argv) {
     pd::register_patches();
 
     // Up to four players, each assigned a pad (or the keyboard) on the controls page's Assign players, which is then
-    // their own port (get_connected_device_info): four people play four players. Until players are assigned every pad and
-    // the keyboard play as one on every port, as in single-player mode, with RECOMPINPUT_SINGLE_PLAYER_UNTIL_ASSIGNED
-    // (CMakeLists.txt).
+    // their own port (get_connected_device_info): four people play four players. Until players are assigned each pad
+    // plays a port of its own in the order the pads were connected and the keyboard plays port 1, with
+    // RECOMPINPUT_SINGLE_PLAYER_UNTIL_ASSIGNED and RECOMPINPUT_PADS_IN_ORDER (CMakeLists.txt).
     recompinput::players::set_single_player_mode(false);
     recompinput::players::set_player_count_range(1, 4);
 

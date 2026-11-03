@@ -39,6 +39,10 @@
 #include "recompui/renderer.h"
 #include "recompui/config.h"
 #include "util/file.h"
+#include "icon_bytes.h"
+#if defined(__linux__)
+#include "window_icon_bmp.h"
+#endif
 #ifdef __EMSCRIPTEN__
 #include "audio_output.h"
 #endif
@@ -128,6 +132,15 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
     if (window == nullptr) {
         exit_error("Failed to create window: %s\n", SDL_GetError());
     }
+
+#if defined(__linux__)
+    // On Windows SDL gives the window the executable's icon (icons/app.rc). Elsewhere the window has none until it is
+    // given one: icons/icon.bmp, built in (CMakeLists.txt; tools/icon.py makes it).
+    if (SDL_Surface* icon = SDL_LoadBMP_RW(SDL_RWFromConstMem(window_icon_bmp, (int)window_icon_bmp_size), 1)) {
+        SDL_SetWindowIcon(window, icon);
+        SDL_FreeSurface(icon);
+    }
+#endif
 
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);
@@ -334,6 +347,7 @@ std::vector<recomp::GameEntry> supported_games = {
         .game_id = u8"pd.n64.us.1",
         .mod_game_id = "pd",
         .save_type = recomp::SaveType::Eep16k,
+        .thumbnail_bytes = std::span<const char>(icon_bytes),
         .is_enabled = true,
         .entrypoint_address = get_entrypoint_address(),
         .entrypoint = recomp_entrypoint,

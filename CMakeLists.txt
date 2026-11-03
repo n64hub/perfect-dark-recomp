@@ -259,6 +259,13 @@ target_include_directories(PerfectDarkRecompiled PRIVATE
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+# The launcher's thumbnail (icons/512.png, drawn by tools/icon.py from icons/icon.svg): no art from the game.
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/icon_bytes.c ${CMAKE_CURRENT_BINARY_DIR}/icon_bytes.h
+    COMMAND file_to_c ${CMAKE_SOURCE_DIR}/icons/512.png icon_bytes ${CMAKE_CURRENT_BINARY_DIR}/icon_bytes.c ${CMAKE_CURRENT_BINARY_DIR}/icon_bytes.h
+    DEPENDS ${CMAKE_SOURCE_DIR}/icons/512.png file_to_c
+)
+target_sources(PerfectDarkRecompiled PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/icon_bytes.c)
+
 target_compile_options(PerfectDarkRecompiled PRIVATE -fno-strict-aliasing -fms-extensions)
 
 if (MSVC)
@@ -285,6 +292,8 @@ if (WIN32)
             $<TARGET_FILE_DIR:PerfectDarkRecompiled>)
 
     target_link_libraries(PerfectDarkRecompiled PRIVATE SDL2 Winmm.lib)
+    # The executable's icon, which SDL also gives the window (tools/icon.py makes it).
+    target_sources(PerfectDarkRecompiled PRIVATE ${CMAKE_SOURCE_DIR}/icons/app.rc)
     # A window program, so no console window opens behind the game; main() stays the entry point. The log still
     # reaches a redirect of stdout and stderr.
     target_link_options(PerfectDarkRecompiled PRIVATE /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
@@ -301,6 +310,13 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_link_libraries(PerfectDarkRecompiled PRIVATE ${FREETYPE_LIBRARIES} SDL2::SDL2 "-latomic -static-libstdc++" ${CMAKE_DL_LIBS} Threads::Threads)
     # Export the recompiled functions' names, so the crash handler's backtrace can print them.
     target_link_options(PerfectDarkRecompiled PRIVATE -rdynamic)
+    # The window's icon, built in (SDL_SetWindowIcon in src/main.cpp).
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/window_icon_bmp.c ${CMAKE_CURRENT_BINARY_DIR}/window_icon_bmp.h
+        COMMAND file_to_c ${CMAKE_SOURCE_DIR}/icons/icon.bmp window_icon_bmp
+            ${CMAKE_CURRENT_BINARY_DIR}/window_icon_bmp.c ${CMAKE_CURRENT_BINARY_DIR}/window_icon_bmp.h
+        DEPENDS ${CMAKE_SOURCE_DIR}/icons/icon.bmp file_to_c
+    )
+    target_sources(PerfectDarkRecompiled PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/window_icon_bmp.c)
 endif()
 
 # DXC settings RT64 expects from the parent project.

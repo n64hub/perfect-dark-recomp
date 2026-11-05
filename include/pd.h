@@ -22,6 +22,12 @@ namespace pd {
     void init_mouse();
     void add_mouse_option(recomp::config::Config& general);
     bool get_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out);
+    // The port the keyboard and mouse play, and the keyboard's profile on a port (src/mouse.cpp).
+    int keyboard_port();
+    int keyboard_profile(int port);
+    // Ext's pad layout (src/ext_controls.cpp): plays a port's controller as the PC port's while the game says Ext
+    // plays its player, after get_input reads it.
+    void ext_remap_input(int port, uint16_t* buttons, float* x, float* y);
 
     // The game entry's on_init_callback (src/register_overlays.cpp): before the preamble runs, every code section at
     // the address the relink links it at, and the values IPL3 leaves in low RAM that the runtime doesn't.

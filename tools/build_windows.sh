@@ -30,19 +30,11 @@ done
 git submodule update --init --recursive lib/N64ModernRuntime lib/rt64 lib/RecompFrontend lib/N64Recomp-browser
 tools/recompile.sh -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 mkdir -p build
-# Through ccache when it is on PATH: its cache is the user's, outside the tree, so a build in a fresh clone (a
-# release's) compiles only what changed since the last one built here (the shaders dxc builds always build). ccache
-# can't cache the .pdb that -Zi shares between compiles, so each object holds its debug info (-Z7; the link still
-# writes the .pdb). CCACHE_BASEDIR makes the tree's paths relative and CCACHE_NOHASHDIR leaves the working directory
-# out of the hash, so another clone's compiles match; their debug info then names the files where that clone had them.
-# Precompiled headers are off with it (RmlUi's): ccache can't cache a file that includes one.
-cc= nopch=OFF
-command -v ccache > /dev/null && cc=ccache nopch=ON
-export CCACHE_BASEDIR="$(cygpath -w "$ROOT")" CCACHE_NOHASHDIR=1
+# Through ccache when it is on PATH (CMakeLists.txt says how): its cache is the user's, outside the tree, so a build
+# in a fresh clone (a release's) compiles only what changed since the last one built here (the shaders dxc builds
+# always build).
 cmake -S . -B build/windows -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl \
     -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_LINKER=lld-link "${patches[@]}" \
-    -DCMAKE_C_COMPILER_LAUNCHER="$cc" -DCMAKE_CXX_COMPILER_LAUNCHER="$cc" -DCMAKE_DISABLE_PRECOMPILE_HEADERS=$nopch \
-    -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -Ob1 -DNDEBUG -Z7" -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -Ob1 -DNDEBUG -Z7" \
     > build/configure-windows.log 2>&1 ||
     { tail -30 build/configure-windows.log; exit 1; }
 ninja -C build/windows -j"$CPUS" PerfectDarkRecompiled

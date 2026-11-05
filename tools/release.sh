@@ -13,10 +13,11 @@
 # PR adds what the player gets to releases/next.md, and a release is a PR titled "Release v<version>" that bumps
 # version_string in src/main.cpp and moves releases/next.md to releases/v<version>.md: what a player gets, not a
 # list of merged PRs. The tag is v<version_string>. Both builds and the publish run on that PR's merge commit,
-# checked out with a clean tree: each archive records the commit it was built from (out/<archive>.commit), and
-# publish refuses archives from another one or that haven't booted (boot), a tree with changes, a commit not on
-# origin/main or still holding releases/next.md, or a tag that exists. A change merged meanwhile goes in the next
-# release and doesn't stop this one.
+# checked out with a clean tree: each build refuses a tree with changes (the build scripts move the submodules onto
+# their pins first) and records the commit it was built from (out/<archive>.commit), and publish refuses archives from
+# another one or that haven't booted (boot), a tree with changes, a commit not on origin/main or still holding
+# releases/next.md, or a tag that exists. A change merged meanwhile goes in the next release and doesn't stop this one.
+# A clone kept from one release to the next keeps build/windows and build/linux, so there only what changed builds.
 #
 # Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (the DLLs, assets/,
 # recompcontrollerdb.txt and LICENSE beside the exe). It needs the Visual C++ 2015-2022 redistributable (x64).
@@ -43,9 +44,14 @@ name="PerfectDarkRecompiled-$tag"
 commit=$(git rev-parse HEAD)
 mkdir -p out
 
+clean() {
+    [ -z "$(git status --porcelain --ignore-submodules=dirty)" ] || { echo "the tree has uncommitted changes" >&2; exit 1; }
+}
+
 case "${1:-}" in
 windows)
     bash tools/build_windows.sh
+    clean
     bash tools/package_windows.sh
     mv build/PerfectDarkRecompiled-windows-x64.zip "out/$name-windows-x64.zip"
     echo "$commit" > "out/$name-windows-x64.zip.commit"
@@ -53,6 +59,7 @@ windows)
     ;;
 linux)
     bash tools/build_linux.sh
+    clean
     image=pd-linux:$(sha256sum tools/docker/Dockerfile.linux | cut -c1-12)
     docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/src" -w /src "$image" bash -euo pipefail -c "
         stage=out/$name-linux-x64
@@ -81,7 +88,7 @@ boot)
 publish)
     notes="releases/$tag.md"
     [ -s "$notes" ] || { echo "no $notes: write the release notes for players first" >&2; exit 1; }
-    [ -z "$(git status --porcelain --ignore-submodules=dirty)" ] || { echo "the tree has uncommitted changes" >&2; exit 1; }
+    clean
     git fetch -q origin main
     git merge-base --is-ancestor "$commit" origin/main || { echo "HEAD is not on origin/main" >&2; exit 1; }
     [ ! -e releases/next.md ] || { echo "releases/next.md is still there: move it to $notes in the release's PR" >&2; exit 1; }

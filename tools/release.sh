@@ -14,10 +14,11 @@
 # version_string in src/main.cpp and moves releases/next.md to releases/v<version>.md: what a player gets, not a
 # list of merged PRs. The tag is v<version_string>. Both builds and the publish run on that PR's merge commit,
 # checked out with a clean tree: each build refuses a tree with changes (the build scripts move the submodules onto
-# their pins first) and records the commit it was built from (out/<archive>.commit), and publish refuses archives from
-# another one or that haven't booted (boot), a tree with changes, a commit not on origin/main or still holding
-# releases/next.md, or a tag that exists. A change merged meanwhile goes in the next release and doesn't stop this one.
-# A clone kept from one release to the next keeps build/windows and build/linux, so there only what changed builds.
+# their pins first, unpatch below) and records the commit it was built from (out/<archive>.commit), and publish
+# refuses archives from another one or that haven't booted (boot), a tree with changes, a commit not on origin/main or
+# still holding releases/next.md, or a tag that exists. A change merged meanwhile goes in the next release and doesn't
+# stop this one. A clone kept from one release to the next keeps build/windows and build/linux, so there only what
+# changed builds.
 #
 # Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (the DLLs, assets/,
 # recompcontrollerdb.txt and LICENSE beside the exe). It needs the Visual C++ 2015-2022 redistributable (x64).
@@ -48,8 +49,24 @@ clean() {
     [ -z "$(git status --porcelain --ignore-submodules=dirty)" ] || { echo "the tree has uncommitted changes" >&2; exit 1; }
 }
 
+# Each configure patches the submodules' files (N64Recomp-browser's patches/apply.cmake, from CMakeLists.txt), so a
+# clone kept from one release to the next holds the last build's patches. Where the pins or the patches have moved
+# since, the files go back to their commits before the build scripts move the submodules, so the new patches go onto
+# pinned files as in a fresh clone and never merge over the old ones. The commit that last moved them is kept in .git,
+# outside the tree.
+unpatch() {
+    local stamp moved
+    stamp=$(git rev-parse --git-path release-patched-for)
+    moved=$(git log -1 --format=%H -- .gitmodules lib runtime-patches)
+    if [ "$(cat "$stamp" 2> /dev/null)" != "$moved" ]; then
+        git submodule foreach -q --recursive 'git checkout -q -- . && git clean -qfd'
+        echo "$moved" > "$stamp"
+    fi
+}
+
 case "${1:-}" in
 windows)
+    unpatch
     bash tools/build_windows.sh
     clean
     bash tools/package_windows.sh
@@ -58,6 +75,7 @@ windows)
     echo "out/$name-windows-x64.zip ($(du -h "out/$name-windows-x64.zip" | cut -f1))"
     ;;
 linux)
+    unpatch
     bash tools/build_linux.sh
     clean
     image=pd-linux:$(sha256sum tools/docker/Dockerfile.linux | cut -c1-12)

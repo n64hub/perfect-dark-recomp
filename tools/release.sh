@@ -27,7 +27,7 @@
 # Started from another folder, either program works from its own (src/main.cpp).
 # boot runs lib/N64Recomp-browser's tools/boot_release.sh, which says how, on the archive: unpacked into a new folder
 # with the ROM (tools/build_decomp.sh's copy) stored as Load ROM stores it, run with --boot (and any arguments after the
-# OS) for 40 s, its own window captured. It writes the <archive>.booted publish asks for.
+# OS) for 30 s, its own window captured. It writes the <archive>.booted publish asks for.
 # v0.1.0's Linux archive was checked by running it in distribution containers under Xvfb with Mesa's software Vulkan
 # (lavapipe), from another folder, the ROM stored beside it, --boot: on Ubuntu 22.04 and Debian 12 it played the intro
 # for 3 minutes; on Ubuntu 24.04 (Mesa 25.2) it drew the title and then lavapipe crashed in one of its own llvmpipe

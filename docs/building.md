@@ -225,7 +225,9 @@ distro has clang, ld.lld and make (`sudo apt install clang lld make`) for `patch
 Visual Studio itself not tried. Without WSL, `MIPS_CC` (a Windows clang with a MIPS backend, such as MSYS2's clang64)
 and `MIPS_LD` (an ld.lld) with GNU make on `PATH` build `patches/` instead; the decomp's build, its relink and the
 headers it generates (`build/relink/`, `lib/perfect_dark/build/ntsc-final/rsp/`, `lib/perfect_dark/src/generated/`)
-then come from a Linux checkout of the same commit.
+then come from a Linux checkout of the same commit. With [ccache](https://ccache.dev) on `PATH` every compile goes
+through it, so a new build dir or another checkout of the same code compiles only what changed since the last build on
+that computer (`CMakeLists.txt` says how).
 `tools/package_windows.sh` zips the program, the DLLs beside it (SDL2, dxcompiler,
 dxil), `assets/`, `recompcontrollerdb.txt` and `LICENSE`, and nothing from the ROM: the player picks theirs with Load
 ROM. The program needs a recent Visual C++ 2015-2022 redistributable (x64), as the MSVC libraries it links with

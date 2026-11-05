@@ -22,8 +22,11 @@
 
 #include "patches.h"
 #include "game/activemenu.h"
+#include "game/bondbike.h"
+#include "game/bondgrab.h"
 #include "game/bondgun.h"
 #include "game/bondmove.h"
+#include "game/bondwalk.h"
 #include "game/challenge.h"
 #include "game/gamefile.h"
 #include "game/lang.h"

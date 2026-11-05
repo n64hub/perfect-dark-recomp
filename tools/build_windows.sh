@@ -27,7 +27,8 @@ for tool in "${tools[@]}"; do
 done
 [[ -n "${MIPS_CC:-}" ]] || wsl which clang ld.lld make > /dev/null ||
     { echo "WSL has no clang, ld.lld or make, which patches/ needs" >&2; exit 1; }
-git submodule update --init --recursive lib/N64ModernRuntime lib/rt64 lib/RecompFrontend lib/N64Recomp-browser
+git -c core.longpaths=true submodule update --init --recursive \
+    lib/N64ModernRuntime lib/rt64 lib/RecompFrontend lib/N64Recomp-browser
 tools/recompile.sh -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
 mkdir -p build
 # Through ccache when it is on PATH (CMakeLists.txt says how): its cache is the user's, outside the tree, so a build

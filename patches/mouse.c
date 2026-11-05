@@ -48,6 +48,8 @@ bool bmove_is_autoaim_x_enabled(void);
 bool bmove_is_autoaim_y_enabled(void);
 f32 player_get_zoom_fov_y(void);
 void player_set_zoom_fov_y(f32 fovy, f32 timemax);
+void ext_tick_begin(bool allowc1buttons);
+void ext_tick_end(bool allowc1buttons);
 
 // The motion the keyboard player's tick took, in the PC port's units (src/mouse.cpp), until the look uses it.
 static f32 s_MouseDx;
@@ -195,13 +197,13 @@ static void mouse_turn(f32 theta, f32 verta)
 	}
 }
 
-// The C key (src/mouse.cpp): a press squats Joanna, from standing or kneeling, and the next stands her back up, where the
-// game's own crouch steps a position a press of C-down or C-up in aim mode (bmove_process_input). Only as she walks:
-// a press in a cutscene, a pause or the radial menu is dropped.
-static void crouch_tick(bool allowc1buttons)
+// The C key (src/mouse.cpp), and Ext's click of the left stick (patches/ext_controls.c): a press squats Joanna, from
+// standing or kneeling, and the next stands her back up, where the game's own crouch steps a position a press of C-down
+// or C-up in aim mode (bmove_process_input). Only as she walks: a press in a cutscene, a pause or the radial menu is
+// dropped.
+void crouch_apply(s32 presses, bool allowc1buttons)
 {
 	struct player *player = g_Vars.currentplayer;
-	s32 presses = recomp_pd_crouch_take();
 
 	if (!allowc1buttons || player->bondmovemode != MOVEMODE_WALK || player->isdead
 			|| player->pausemode != PAUSEMODE_UNPAUSED) {
@@ -285,7 +287,12 @@ RECOMP_PATCH void bmove_tick(bool allowc1x, bool allowc1y, bool allowc1buttons, 
 		s_MouseAimWasHeld = false;
 	}
 
+	// @recomp: Ext's pad (patches/ext_controls.c).
+	ext_tick_begin(allowc1buttons);
+
 	bmove_process_input(allowc1x, allowc1y, allowc1buttons, ignorec2);
+
+	ext_tick_end(allowc1buttons);
 
 	if (mouse) {
 		mouse_tick(allowc1x, allowc1y, allowc1buttons);
@@ -293,7 +300,7 @@ RECOMP_PATCH void bmove_tick(bool allowc1x, bool allowc1y, bool allowc1buttons, 
 
 	// @recomp: the C key crouches the keyboard player.
 	if (keyboard) {
-		crouch_tick(allowc1buttons);
+		crouch_apply(recomp_pd_crouch_take(), allowc1buttons);
 	}
 
 	if (g_Vars.currentplayer->bondmovemode == MOVEMODE_BIKE) {

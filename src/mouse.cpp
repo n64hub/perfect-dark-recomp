@@ -50,27 +50,6 @@ namespace {
         return !recompinput::game_input_disabled() && SDL_GetRelativeMouseMode() == SDL_TRUE;
     }
 
-    // The port the keyboard plays: the player assigned it, or player 1 while nobody has it or players aren't assigned.
-    int keyboard_port() {
-        using namespace recompinput;
-        if (!players::is_single_player_mode()) {
-            for (size_t i = 0; i < players::get_number_of_assigned_players(); i++) {
-                if (players::get_player_input_device((int)i) == InputDevice::Keyboard) {
-                    return (int)i;
-                }
-            }
-        }
-        return 0;
-    }
-
-    // The keyboard's profile on that port: single-player mode's keys until players are assigned.
-    int keyboard_profile(int port) {
-        using namespace recompinput;
-        return players::is_single_player_mode()
-            ? profiles::get_sp_keyboard_profile_index()
-            : profiles::get_input_profile_for_player(port, InputDevice::Keyboard);
-    }
-
     int watch_events(void*, SDL_Event* event) {
         switch (event->type) {
         case SDL_MOUSEMOTION:
@@ -126,6 +105,27 @@ namespace {
     }
 }
 
+// The port the keyboard plays: the player assigned it, or player 1 while nobody has it or players aren't assigned.
+int pd::keyboard_port() {
+    using namespace recompinput;
+    if (!players::is_single_player_mode()) {
+        for (size_t i = 0; i < players::get_number_of_assigned_players(); i++) {
+            if (players::get_player_input_device((int)i) == InputDevice::Keyboard) {
+                return (int)i;
+            }
+        }
+    }
+    return 0;
+}
+
+// The keyboard's profile on that port: single-player mode's keys until players are assigned.
+int pd::keyboard_profile(int port) {
+    using namespace recompinput;
+    return players::is_single_player_mode()
+        ? profiles::get_sp_keyboard_profile_index()
+        : profiles::get_input_profile_for_player(port, InputDevice::Keyboard);
+}
+
 void pd::init_mouse() {
     using recompinput::GameInput;
     // RecompFrontend's defaults, but as a PC player expects with the mouse turning too: A and D strafing (the C
@@ -173,6 +173,7 @@ void pd::add_mouse_option(recomp::config::Config& general) {
 
 bool pd::get_input(int controller_num, uint16_t* buttons_out, float* x_out, float* y_out) {
     bool ret = recompinput::profiles::get_n64_input(controller_num, buttons_out, x_out, y_out);
+    ext_remap_input(controller_num, buttons_out, x_out, y_out);
     if (controller_num == keyboard_port() && game_has_mouse()) {
         uint32_t mouse = SDL_GetMouseState(nullptr, nullptr);
         if (mouse & SDL_BUTTON(SDL_BUTTON_LEFT)) {
@@ -192,7 +193,7 @@ extern "C" void recomp_pd_mouse_playing(uint8_t* rdram, recomp_context* ctx) {
 
 // recomp_pd_keyboard_port(): the port the keyboard and mouse play, 0-3.
 extern "C" void recomp_pd_keyboard_port(uint8_t* rdram, recomp_context* ctx) {
-    _return<int32_t>(ctx, keyboard_port());
+    _return<int32_t>(ctx, pd::keyboard_port());
 }
 
 // recomp_pd_mouse_aim_held(): whether the mouse's aim is held: the right button, or a key bound to L or R (Left Shift)
@@ -203,8 +204,8 @@ extern "C" void recomp_pd_mouse_aim_held(uint8_t* rdram, recomp_context* ctx) {
     bool held = false;
     if (game_has_mouse()) {
         held = (SDL_GetMouseState(nullptr, nullptr) & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-        int port = keyboard_port();
-        int profile = keyboard_profile(port);
+        int port = pd::keyboard_port();
+        int profile = pd::keyboard_profile(port);
         for (size_t i = 0; profile >= 0 && i < recompinput::num_bindings_per_input; i++) {
             for (GameInput input : { GameInput::L, GameInput::R }) {
                 held |= recompinput::get_input_digital(port, recompinput::profiles::get_input_binding(profile, input, i));

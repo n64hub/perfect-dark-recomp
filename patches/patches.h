@@ -38,6 +38,9 @@ s32 recomp_pd_keyboard_port(void);
 s32 recomp_pd_mouse_aim_held(void);
 // The C key's presses since the last take, each a crouch or a stand (patches/mouse.c), the mouse playing or not.
 s32 recomp_pd_crouch_take(void);
+// Ext (src/ext_controls.cpp): tells the program whether Ext plays the port's pad now (the player walks in a level), and
+// takes the left stick, in the N64's units, and EXT_* (patches/ext_controls.c) for what was pressed since the last take.
+s32 recomp_pd_ext_take(s32 port, s32 playing, s32 *movex, s32 *movey);
 // Field of View (src/config.cpp): the angle the player's view is drawn with for one the game sets, in degrees.
 f32 recomp_pd_widen_fov(f32 fovy);
 // Aspect Ratio (src/config.cpp): the window's width over its height with Expand, at least the one given; with Original

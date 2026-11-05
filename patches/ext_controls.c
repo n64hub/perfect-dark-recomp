@@ -33,10 +33,14 @@
 #include "game/lang.h"
 #include "game/mainmenu.h"
 #include "game/menu.h"
+#include "game/menuitem.h"
 #include "game/mplayer/mplayer.h"
 #include "game/options.h"
 #include "game/pak.h"
 #include "game/savebuffer.h"
+#include "game/text.h"
+#include "game/game_006900.h"
+#include "lib/vi.h"
 #include "bss.h"
 #include "data.h"
 
@@ -147,6 +151,9 @@ RECOMP_PATCH void gamefile_apply_options(struct gamefile *file)
 	}
 }
 
+// Whether the Control Style menu shows Ext: its picture, menuitem_controller_render, lists Ext's pad in place of 1.2's.
+static bool s_ExtShown;
+
 RECOMP_PATCH MenuItemHandlerResult menuhandler_control_style_impl(s32 operation, struct menuitem *item, union handlerdata *data, s32 mpindex)
 {
 	u16 categories[] = {
@@ -192,13 +199,187 @@ RECOMP_PATCH MenuItemHandlerResult menuhandler_control_style_impl(s32 operation,
 		break;
 	case MENUOP_ON_OPTION_FOCUS:
 		if (g_MenuData.root == MENUROOT_MAINMENU) {
-			// @recomp: the picture of the pad has no Ext, so it shows 1.2's
+			// @recomp: Ext's picture is its own (menuitem_controller_render), kept as 1.2 for the rest of the menu
 			g_Menus[g_MpPlayerNum].main.controlmode = data->list.value == CONTROLMODE_EXT ? CONTROLMODE_12 : data->list.value;
+			s_ExtShown = data->list.value == CONTROLMODE_EXT;
 		}
 		break;
 	}
 
 	return 0;
+}
+
+Gfx *menuitem_controller_render_pad(Gfx *gdl, struct menurendercontext *context, s32 padx, s32 pady, s32 curmode, u32 alpha, u32 colour1, u32 colour2, s8 prevmode);
+
+// Ext's buttons, as the Control Style menu lists them where it draws the N64 pad for the other styles.
+static char *s_ExtLabels[][2] = {
+	{ "RT / LT: ", "FIRE / AIM" },
+	{ "RIGHT STICK: ", "LOOK" },
+	{ "LEFT STICK: ", "WALK/STRAFE" },
+	{ "LEFT STICK CLICK: ", "CROUCH" },
+	{ "A OR RB: ", "ACTION" },
+	{ "X: ", "RELOAD" },
+	{ "Y / B: ", "NEXT / PREVIOUS WEAPON" },
+	{ "LB: ", "WEAPON" },
+	{ "D-PAD: ", "AS C BUTTONS" },
+};
+
+// The NTSC final's, but for Ext: its name and its pad's buttons as text, and its own hints.
+RECOMP_PATCH Gfx *menuitem_controller_render(Gfx *gdl, struct menurendercontext *context)
+{
+	struct menuitemdata_controller *data = &context->data->controller;
+	u32 colour;
+	u32 textcolour;
+	s32 x;
+	s32 y;
+	char text[32];
+	struct menudialog *dialog = context->dialog;
+	u32 contalpha;
+	u32 textalpha;
+	// @recomp: Ext, which the menu keeps as 1.2
+	bool ext = s_ExtShown && g_Menus[g_MpPlayerNum].main.controlmode == CONTROLMODE_12;
+	s32 i;
+
+	text_backup_and_reset_blends();
+
+	if (data->curmode != (g_Menus[g_MpPlayerNum].main.controlmode & 0xff)) {
+		data->prevmode = data->curmode;
+		data->curmode = g_Menus[g_MpPlayerNum].main.controlmode;
+		data->textfadetimer = 0;
+	}
+
+	if (data->controlgroup == 1) {
+		if (g_Menus[g_MpPlayerNum].main.controlmode < CONTROLMODE_21) {
+			data->controlgroup = 2;
+			data->contfadetimer = 0;
+			data->prevmode = -1;
+		}
+	} else {
+		if (g_Menus[g_MpPlayerNum].main.controlmode >= CONTROLMODE_21) {
+			data->controlgroup = 1;
+			data->contfadetimer = 0;
+			data->prevmode = -1;
+		}
+	}
+
+	if (data->textfadetimer < 255) {
+		s32 value = data->textfadetimer + g_Vars.diffframe240 * 2;
+
+		if (value > 255) {
+			value = 255;
+		}
+
+		data->textfadetimer = value;
+	}
+
+	if (data->contfadetimer < 255) {
+		s32 value = data->contfadetimer + g_Vars.diffframe240 * 2;
+
+		if (value > 255) {
+			value = 255;
+		}
+
+		data->contfadetimer = value;
+	}
+
+	textalpha = data->textfadetimer;
+	contalpha = data->contfadetimer;
+	gdl = text_begin(gdl);
+
+	if (dialog->transitionfrac < 0) {
+		colour = g_MenuColours[dialog->type].item_unfocused;
+	} else {
+		colour = colour_blend(
+				g_MenuColours[dialog->type2].item_unfocused,
+				g_MenuColours[dialog->type].item_unfocused,
+				dialog->colourweight);
+	}
+
+	if (dialog->dimmed) {
+		colour = (colour_blend(colour, 0, 44) & 0xffffff00) | (colour & 0xff);
+	}
+
+	text_set_wave_colours(
+			g_MenuWave2Colours[dialog->type].item_unfocused,
+			g_MenuWave1Colours[dialog->type].item_unfocused);
+
+	if (ext) {
+		x = context->x + 2;
+		y = context->y + 2;
+		gdl = text_render_v2(gdl, &x, &y, "Control Style Ext (Modern Pad)",
+				g_CharsHandelGothicSm, g_FontHandelGothicSm, colour, vi_get_width(), vi_get_height(), 0, 0);
+		gdl = text_end(gdl);
+
+		textcolour = colour_blend(colour, colour & 0xffffff00, textalpha);
+		colour = colour_blend(colour, colour & 0xffffff00, contalpha);
+
+		gdl = text_begin(gdl);
+
+		for (i = 0; i < ARRAYCOUNT(s_ExtLabels); i++) {
+			x = context->x + 10;
+			y = context->y + 19 + i * 7;
+			gdl = text_render_v2(gdl, &x, &y, s_ExtLabels[i][0],
+					g_CharsHandelGothicXs, g_FontHandelGothicXs, colour, vi_get_width(), vi_get_height(), 0, 0);
+			gdl = text_render_v2(gdl, &x, &y, s_ExtLabels[i][1],
+					g_CharsHandelGothicXs, g_FontHandelGothicXs, textcolour | 0xffffff00, vi_get_width(), vi_get_height(), 0, 0);
+		}
+
+		x = context->x;
+		y = context->y + 92;
+		gdl = text_render_v2(gdl, &x, &y,
+				"Hold LB for quick-menu.\nHold A to toggle function.\nA+RT temporarily changes function.\n"
+				"LT aims, the right stick moving the sight.\n",
+				g_CharsHandelGothicSm, g_FontHandelGothicSm, colour, vi_get_width(), vi_get_height(), 0, 0);
+		gdl = text_end(gdl);
+
+		text_restore_blends();
+
+		return gdl;
+	}
+
+	if (g_Menus[g_MpPlayerNum].main.controlmode >= CONTROLMODE_21) {
+		sprintf(text, lang_get(L_MPWEAPONS_213), // "Control Style %s %s"
+				lang_get(g_ControlStyleOptions[g_Menus[g_MpPlayerNum].main.controlmode]),
+				lang_get(L_MPWEAPONS_215)); // "(Two-Handed)"
+	} else {
+		sprintf(text, lang_get(L_MPWEAPONS_213), // "Control Style %s %s"
+				lang_get(g_ControlStyleOptions[g_Menus[g_MpPlayerNum].main.controlmode]),
+				lang_get(L_MPWEAPONS_214)); // "(One-Handed)"
+	}
+
+	x = context->x + 2;
+	y = context->y + 2;
+	gdl = text_render_v2(gdl, &x, &y, text,
+			g_CharsHandelGothicSm, g_FontHandelGothicSm, colour, vi_get_width(), vi_get_height(), 0, 0);
+	gdl = text_end(gdl);
+
+	textcolour = colour_blend(colour, colour & 0xffffff00, textalpha);
+	colour = colour_blend(colour, colour & 0xffffff00, contalpha);
+
+	if (g_Menus[g_MpPlayerNum].main.controlmode >= CONTROLMODE_21) {
+		gdl = menuitem_controller_render_pad(gdl, context, 0, 12,
+				g_Menus[g_MpPlayerNum].main.controlmode,
+				contalpha, textcolour, colour, data->prevmode);
+		gdl = menuitem_controller_render_pad(gdl, context, 0, 80,
+				g_Menus[g_MpPlayerNum].main.controlmode + 4,
+				contalpha, textcolour, colour, data->prevmode);
+	} else {
+		gdl = menuitem_controller_render_pad(gdl, context, 0, 15,
+				g_Menus[g_MpPlayerNum].main.controlmode,
+				contalpha, textcolour, colour, data->prevmode);
+
+		x = context->x;
+		y = context->y + 92;
+
+		gdl = text_begin(gdl);
+		gdl = text_render_v2(gdl, &x, &y, lang_get(L_MPWEAPONS_216), // "Hold weapon button for ..."
+				g_CharsHandelGothicSm, g_FontHandelGothicSm, colour, vi_get_width(), vi_get_height(), 0, 0);
+		gdl = text_end(gdl);
+	}
+
+	text_restore_blends();
+
+	return gdl;
 }
 
 // A Combat Simulator player's style and their file's Ext bit (OPTION_0100 cleared).

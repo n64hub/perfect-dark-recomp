@@ -15,7 +15,7 @@ desktop program from it ([The desktop program](#the-desktop-program)), which pla
 ## Build it
 
 ```bash
-git clone --recurse-submodules https://github.com/n64hub/perfect-dark-recomp
+git -c core.longpaths=true clone --recurse-submodules https://github.com/n64hub/perfect-dark-recomp
 cd perfect-dark-recomp
 tools/build_decomp.sh path/to/pd.z64        # [cpus], all of them by default
 ```
@@ -203,7 +203,7 @@ with CRLF line endings, which the decomp's build can't read, so clone with them 
 submodule:
 
 ```bash
-git -c core.autocrlf=false clone --recurse-submodules https://github.com/n64hub/perfect-dark-recomp
+git -c core.autocrlf=false -c core.longpaths=true clone --recurse-submodules https://github.com/n64hub/perfect-dark-recomp
 cd perfect-dark-recomp
 git config core.autocrlf false
 git submodule foreach --recursive git config core.autocrlf false

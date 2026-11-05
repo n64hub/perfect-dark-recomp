@@ -9,7 +9,8 @@
 //    file stays one a console loads, as 1.2 or the player file's 1.1.
 //  - New agent files and new Combat Simulator players start on Ext (pak_clear_all_bitflags, mp_player_set_defaults);
 //    a file saved before Ext existed keeps its style.
-//  - The Control Style menu lists it after 2.4, in a group of its own, and the Combat Simulator's after 1.4.
+//  - The Control Style menu lists it after 2.4, in a group of its own, with its pad's buttons as text where the other
+//    styles have the N64 pad's picture (menuitem_controller_render), and the Combat Simulator's after 1.4.
 //  - While an Ext player walks in a level the program plays their pad as the PC port does (src/ext_controls.cpp): the
 //    right stick is the game's stick, so it looks and turns as 1.2's does, the left stick walks and strafes, read here
 //    each tick (recomp_pd_ext_take) and added where the game hands her movement over (bmove_apply_move_data) as the

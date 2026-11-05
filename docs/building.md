@@ -242,9 +242,10 @@ Perfect Menu with the agent file loaded.
 ### Releases
 
 `tools/release.sh windows` (Git Bash) and `tools/release.sh linux` (Linux with Docker) build and pack the release's
-two archives into `out/`, from the same commit of `main`, and `tools/release.sh publish` publishes them as the GitHub
-release `v<version_string>` (`src/main.cpp`) with `releases/v<version>.md` as its notes. Its header says what each
-archive holds and what publishing checks first.
+two archives into `out/`, from the same commit of `main`, `boot windows` and `boot linux` boot each from a new folder,
+as a player first runs it, and `tools/release.sh publish` publishes them as the GitHub release `v<version_string>`
+(`src/main.cpp`) with `releases/v<version>.md` as its notes. Its header says what each archive holds and what
+publishing checks first.
 
 ### What the build needs that isn't obvious
 

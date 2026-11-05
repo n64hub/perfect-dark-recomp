@@ -5,6 +5,8 @@
 #
 #     tools/release.sh windows   # Git Bash on Windows, as tools/build_windows.sh says: out/<name>-windows-x64.zip
 #     tools/release.sh linux     # Linux with Docker: out/<name>-linux-x64.tar.gz
+#     tools/release.sh boot windows   # Git Bash on Windows: boots that archive from a new folder, out/boot-windows
+#     tools/release.sh boot linux     # Linux with Docker: the same for the Linux archive, out/boot-linux
 #     tools/release.sh publish   # both archives, built from this commit: the GitHub release (gh signed in)
 #
 # One release carries every change merged since the last (N64Recomp-browser's CLAUDE.md, Releasing): each change's
@@ -12,8 +14,9 @@
 # version_string in src/main.cpp and moves releases/next.md to releases/v<version>.md: what a player gets, not a
 # list of merged PRs. The tag is v<version_string>. Both builds and the publish run on that PR's merge commit,
 # checked out with a clean tree: each archive records the commit it was built from (out/<archive>.commit), and
-# publish refuses archives from another one, a tree with changes, a commit not on origin/main or still holding
-# releases/next.md, or a tag that exists. A change merged meanwhile goes in the next release and doesn't stop this one.
+# publish refuses archives from another one or that haven't booted (boot), a tree with changes, a commit not on
+# origin/main or still holding releases/next.md, or a tag that exists. A change merged meanwhile goes in the next
+# release and doesn't stop this one.
 #
 # Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (the DLLs, assets/,
 # recompcontrollerdb.txt and LICENSE beside the exe). It needs the Visual C++ 2015-2022 redistributable (x64).
@@ -22,6 +25,9 @@
 # beside the binary (RUNPATH $ORIGIN), as the Windows zip carries SDL2.dll, and is a .tar.gz so the binary stays
 # executable. GTK 3, FreeType and a Vulkan driver are the system's.
 # Started from another folder, either program works from its own (src/main.cpp).
+# boot runs lib/N64Recomp-browser's tools/boot_release.sh, which says how, on the archive: unpacked into a new folder
+# with the ROM (tools/build_decomp.sh's copy) stored as Load ROM stores it, run with --boot (and any arguments after the
+# OS) for 40 s, its own window captured. It writes the <archive>.booted publish asks for.
 # v0.1.0's Linux archive was checked by running it in distribution containers under Xvfb with Mesa's software Vulkan
 # (lavapipe), from another folder, the ROM stored beside it, --boot: on Ubuntu 22.04 and Debian 12 it played the intro
 # for 3 minutes; on Ubuntu 24.04 (Mesa 25.2) it drew the title and then lavapipe crashed in one of its own llvmpipe
@@ -61,6 +67,17 @@ linux)
     echo "$commit" > "out/$name-linux-x64.tar.gz.commit"
     echo "out/$name-linux-x64.tar.gz ($(du -h "out/$name-linux-x64.tar.gz" | cut -f1))"
     ;;
+boot)
+    case "${2:-}" in
+    windows) archive="out/$name-windows-x64.zip" ;;
+    linux) archive="out/$name-linux-x64.tar.gz" ;;
+    *) echo "usage: tools/release.sh boot windows|linux [program args...]" >&2; exit 1 ;;
+    esac
+    boot=${BOOT_RELEASE:-lib/N64Recomp-browser/tools/boot_release.sh}
+    [ -f "$boot" ] ||
+        { echo "no $boot: set BOOT_RELEASE to tools/boot_release.sh in a checkout of N64Recomp-browser's main" >&2; exit 1; }
+    bash "$boot" "$archive" lib/perfect_dark/pd.ntsc-final.z64 pd.n64.us.1 "out/boot-$2" "${@:3}"
+    ;;
 publish)
     notes="releases/$tag.md"
     [ -s "$notes" ] || { echo "no $notes: write the release notes for players first" >&2; exit 1; }
@@ -73,11 +90,13 @@ publish)
     for f in "${files[@]}"; do
         [ -f "$f" ] || { echo "no $f: run tools/release.sh windows and linux first" >&2; exit 1; }
         [ "$(cat "$f.commit" 2> /dev/null)" = "$commit" ] || { echo "$f wasn't built from $commit" >&2; exit 1; }
+        [ "$(cat "$f.booted" 2> /dev/null)" = "$(sha256sum "$f" | cut -d' ' -f1)" ] ||
+            { echo "$f hasn't booted: run tools/release.sh boot windows and linux first" >&2; exit 1; }
     done
     gh release create "$tag" "${files[@]}" --target "$commit" --title "Perfect Dark: Recompiled $tag" --notes-file "$notes"
     ;;
 *)
-    echo "usage: tools/release.sh windows|linux|publish" >&2
+    echo "usage: tools/release.sh windows|linux|boot <os>|publish" >&2
     exit 1
     ;;
 esac

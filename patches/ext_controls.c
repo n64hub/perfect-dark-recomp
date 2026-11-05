@@ -17,8 +17,9 @@
 //    LT is R (aim), A and RB are B (use, reload, and held or with RT the gun's other function), LB holds A, so it opens
 //    the radial menu at once (ext_tick_begin) and keeps it open while held, and the d-pad is the C buttons. X reloads,
 //    Y and B change to the next and previous weapon, and a click of the left stick crouches (ext_tick_end), each
-//    pressed since the last tick. The keyboard and mouse play Ext as 1.2 with the stick walking: W and S walk, the
-//    arrows strafe, the mouse looks (patches/mouse.c).
+//    pressed since the last tick. The keyboard plays its keys as the 1.1 they were laid out for: its stick's W and S
+//    walk and its arrows turn (the program keeps them so), A and D strafe as 1.2's C buttons, and the up and down
+//    arrows, C up and down, walk too, where 1.1 looks; the mouse looks (patches/mouse.c).
 
 #include "patches.h"
 #include "game/activemenu.h"

@@ -75,6 +75,13 @@ the console does. They are the game's own code (`patches/`, `src/`), taken from 
   gun's function), Left Shift aiming (R), Space changing weapon (A) and Q firing (Z). C crouches her to a squat and
   stands her back up, as GoldenEye64Recomp-web's Crouch does, the mouse playing or not: a key of its own that the
   Controls tab doesn't list.
+- **Ext, a modern pad's controls**: a control style after the PC port's, listed after 2.4 in the game's own Control
+  Style menu (and after 1.4 in a Combat Simulator player's), and the one a new agent file and a new Combat Simulator
+  player start on. The right stick looks and turns, the left stick walks and strafes, RT fires and LT aims, A or RB
+  uses what is in front of her (B), LB opens the radial menu while held (A), X reloads, Y and B change to the next and
+  previous weapon, a click of the left stick crouches, and the d-pad is the C buttons; in the menus the pad plays as
+  the Controls tab binds it. The keyboard and mouse play it as above, the up and down arrows walking. A file saved
+  before keeps its style, and a console reads an Ext file as 1.2.
 - Up to four people play four players (Combat Simulator, Co-Operative, Counter-Operative), each with a pad of their own
   or the keyboard: each pad plays a player of its own with no setup, in the order the pads were plugged in, and the
   keyboard plays player 1 beside the first pad. To choose who plays which, open the menu (Esc), and on Controls press
@@ -98,14 +105,16 @@ For the game as it shipped, set every Original value:
 | Smooth motion | Framerate | `graphics.json` `rr_option` | `"Display"` | `"Original"` |
 
 Field of View is Original by default, as the game was drawn for its 60 degrees and Expand already widens the view.
+Ext is the game's own setting, kept in the agent file: for the controls as the game shipped, pick 1.1 in Control
+Style.
 
 Left out:
 
 - **A game rate above 60, or uncapped**: the game already ticks up to 60 a second (it counts each frame's length in
   VIs), and RT64 interpolates above that. Ticking faster needs the PC port's fixes to footsteps, automatic fire and
   doors, which assume at most 60.
-- **Mouse in the menus, on the hoverbike, the CamSpy and the Slayer's rocket**, and a reload key apart from use: the
-  game's buttons do those (the Controls tab binds them).
+- **Mouse in the menus, on the hoverbike, the CamSpy and the Slayer's rocket**, and a reload key apart from use on the
+  keyboard: the game's buttons do those (the Controls tab binds them).
 - **Widescreen split screen**, and the PC port's smaller options (crosshair sway, gun position, the extra HUD
   scaling).
 

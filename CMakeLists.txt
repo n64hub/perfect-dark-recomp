@@ -100,6 +100,10 @@ add_compile_definitions(
 include(${CMAKE_SOURCE_DIR}/lib/N64Recomp-browser/patches/apply.cmake)
 n64recomp_browser_apply_patches(${CMAKE_SOURCE_DIR}/lib)
 
+# Parts of one object drawn at one place and orientation and only scaled apart are told apart by their scales when RT64
+# pairs a game frame's transforms with the frame before's, as with Emscripten: RT64_MATCH_SCALES. Without it they could
+# tie and be paired across, the frames between drawing one part toward another's size and place.
+set(RT64_MATCH_SCALES ON)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rt64 ${CMAKE_BINARY_DIR}/rt64)
 
 set(BUILD_SHARED_LIBS OFF)

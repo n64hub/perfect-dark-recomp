@@ -30,7 +30,8 @@
 # plan put on) missed 6, and with those 2 more. Then the IR scanner put on in Deep Sea and Skedar Ruins (which give
 # it, as the Carrington Institute's training does) missed 4, the same in Chrome and Firefox: its lens's rows (which
 # Infiltration's intro, its film interlace, missed too) and its rectangle, 2 any level needs, above the first section,
-# and 1 in each. And Air Base's intro, its horizon scanner, missed 1.
+# and 1 in each. And Air Base's intro, its horizon scanner, missed 1. Then the extended plan
+# (tools/play_plan_extended.json) at 3840x2000 missed 5 in Villa in Firefox, none in Chrome.
 # A new recording drops them unless they are added again.
 00504240 0080eccf fcff97ff ff2dfeff 04cb540b
 00504240 0089ec4f fcffffff fffdf6fb 1cc9540b
@@ -430,6 +431,11 @@ c81049d8 0099ac6f fc26a004 1f1493ff 1807100c
 c4112078 0099ac6f fc26a004 1f1093fb 199f100c
 c4112078 0099ac2f fc26a004 1f1093fb 199f100c
 c4112078 00992c6f fc26a004 1f1093fb 1ccf540c
+c41049d8 0099ac6f fc159a04 5ffefff8 1ccb540c
+c41049d8 0098ac6f fc159a04 5ffefff8 0803550c
+c41049d8 0099ac6f fc159a04 5ffefff8 188a000c
+c41049d8 0099ac6f fc159a04 5ffefff8 18035408
+c41049d8 0099ac6f fc159a04 5ffefff8 1803540c
 section chicago
 00552048 00882c0f fc40fe81 55fef97c 088a0008
 c4112078 00992c0f fc26a004 1f1093fb 188e000c

@@ -22,7 +22,9 @@
 //  - The game's own 16:9 (Options, Video) is anamorphic, a squeezed picture for a widescreen TV: it reads as Normal
 //    while Expand widens, so the picture isn't widened twice: in the Video menu too, and a game file saved then keeps
 //    Normal.
-// Split screen stays 4:3 (ws_ext() is 0 with more than one player), and so does Original, where every function here
+// In split screen a view as wide as the frame (two players, one above the other) is widened the same way, since RT64
+// widens it as it does one player's: with 4:3 culling the window's sides drew black. A view narrower than the frame
+// (two side by side, three or four players) stays 4:3, ws_ext() 0, and so does Original, where every function here
 // does what the decompilation does, command for command.
 //
 // The functions are src/game/bg.c's, camera.c's, hudmsg.c's, bondgun.c's, radar.c's and options.c's as the
@@ -75,8 +77,8 @@ s32 bgun_get_ammo_state(s32 funcnum, struct handweaponinfo *info, struct hand *h
 void bgun_reset_abmag(struct abmag *abmag);
 Gfx *bgun_draw_hud_gauge(Gfx *gdl, s32 x1, s32 y1, s32 x2, s32 y2, struct abmag *abmag, s32 remaining, s32 capacity, u32 emptycolour, u32 filledcolour, bool flip);
 
-// The pixels past the frame's 4:3 the window shows on each side, in the frame's pixels: 0 with Original, in split
-// screen, and where the window is no wider than the frame. RT64 takes the frame's pixels as square.
+// The pixels past the frame's 4:3 the window shows on each side, in the frame's pixels: 0 with Original, for a view
+// narrower than the frame, and where the window is no wider than the frame. RT64 takes the frame's pixels as square.
 static f32 ws_ext(void)
 {
 	f32 width;
@@ -84,14 +86,15 @@ static f32 ws_ext(void)
 	f32 original;
 	f32 aspect;
 
-	if (PLAYERCOUNT() != 1) {
-		return 0.0f;
-	}
-
 	width = vi_get_width();
 	height = vi_get_height();
 
 	if (width <= 0.0f || height <= 0.0f) {
+		return 0.0f;
+	}
+
+	// A view narrower than the frame (split screen's halves side by side, its quarters) isn't widened by RT64.
+	if (vi_get_view_left() > 0 || vi_get_view_left() + vi_get_view_width() < width) {
 		return 0.0f;
 	}
 

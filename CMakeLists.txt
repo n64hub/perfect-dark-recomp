@@ -376,6 +376,12 @@ if (PD_PATCHES)
     target_sources(PerfectDarkRecompiled PRIVATE ${CMAKE_SOURCE_DIR}/src/register_patches.cpp ${CMAKE_SOURCE_DIR}/rsp/aspMain.cpp)
     target_link_libraries(PerfectDarkRecompiled PRIVATE PatchesLib)
     target_compile_definitions(PerfectDarkRecompiled PRIVATE PD_PATCHES)
+    # register_patches.cpp includes the patches' section table and image, which the commands above write in the middle
+    # of a build. The compiler's own record names them by a relative path and those commands by an absolute one, so
+    # without this edge ninja judged the object current before they ran, and an incremental build after a patch moved
+    # linked the old table (undefined <patch>_<old address> symbols).
+    set_source_files_properties(${CMAKE_SOURCE_DIR}/src/register_patches.cpp PROPERTIES OBJECT_DEPENDS
+        "${CMAKE_SOURCE_DIR}/RecompiledPatches/recomp_overlays.inl;${CMAKE_SOURCE_DIR}/RecompiledPatches/patches_bin.h")
 endif()
 
 target_link_libraries(PerfectDarkRecompiled PRIVATE

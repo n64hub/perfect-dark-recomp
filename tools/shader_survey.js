@@ -14,8 +14,8 @@
 // objectives are done, and resolves true once the game has taken it (its endscreen follows), false after ms
 // (tools/play_plan_full.json plays the game through with them). For the Combat Simulator (tools/play_plan_pads.json):
 // mpMenu(ms), which opens its menu from the file menu as the main menu's Combat Simulator does and resolves true once it
-// is open, false after ms; joined(), the players joined there, a bit each (0x1 player 1, 0x2 player 2), as each
-// controller's Start joins its own; and mpStart(stage, slots, ms), which starts a combat match on that stage (0x32
+// is open, false after ms; joined(), the players in there, a bit each (0x1 player 1, 0x2 player 2), as each
+// controller's Start joins its own ("Player 2: Ready!"); and mpStart(stage, slots, ms), which starts a combat match on that stage (0x32
 // Skedar) for the players joined, or slots' players where slots isn't 0, and resolves true once the stage plays, false
 // after ms.
 (() => {

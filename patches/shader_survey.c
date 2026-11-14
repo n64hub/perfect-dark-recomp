@@ -27,10 +27,11 @@
 //
 // For the Combat Simulator (a pads plan's split screen, the radar): `mpmenu` set at the file menu opens the Combat
 // Simulator's menu as the main menu's Combat Simulator does (menuhandler_main_menu_combat_simulator), where each
-// controller's Start joins its player, the game's own way; `menuroot` carries the menu's root (MENUROOT_MPSETUP, 3,
-// there; -1 with no menu) and `chrslots` g_MpSetup.chrslots, a bit a player joined (0x1 player 1, 0x2 player 2). A stage
-// written to `mpstage` (STAGE_MP_SKEDAR, 0x32) then starts a combat match there for the players joined, or for
-// `mpslots`' players where it isn't 0 (a desktop build with only a keyboard plays split screen that way), as the menu
+// controller's Start joins its player, the game's own way ("Player 2: Ready!", g_Vars.waitingtojoin, until the menu
+// opens a panel of its own for it); `menuroot` carries the menu's root (MENUROOT_MPSETUP, 3, there; -1 with no menu)
+// and `chrslots` a bit each player in (0x1 player 1, 0x2 player 2): g_MpSetup.chrslots' players and those waiting to
+// join. A stage written to `mpstage` (STAGE_MP_SKEDAR, 0x32) then starts a combat match there for those players, or
+// for `mpslots`' players where it isn't 0 (a desktop build with only a keyboard plays split screen that way), as the menu
 // does once every player is ready (menutick's MENUROOT_START_MP_MATCH), and `mpstarted` counts the starts taken.
 
 #include "patches.h"
@@ -74,6 +75,21 @@ struct ShaderSurvey {
 struct ShaderSurvey shader_survey = { { 0x53484452, 0x53525659 }, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0 }; // "SHDR" "SRVY"
 
 MenuItemHandlerResult menuhandler_main_menu_combat_simulator(s32 operation, struct menuitem *item, union handlerdata *data);
+
+// The Combat Simulator's players: those in g_MpSetup.chrslots and those waiting to join, a bit each.
+static s32 shader_survey_players(void)
+{
+	s32 players = g_MpSetup.chrslots & 0xf;
+	s32 i;
+
+	for (i = 0; i < MAX_PLAYERS; i++) {
+		if (g_Vars.waitingtojoin[i]) {
+			players |= 1 << i;
+		}
+	}
+
+	return players;
+}
 
 static s32 shader_survey_forcecomplete = false;
 
@@ -126,9 +142,8 @@ void shader_survey_tick(void)
 		g_MpSetup.stagenum = shader_survey.mpstage;
 		g_MpSetup.scenario = MPSCENARIO_COMBAT;
 
-		if (shader_survey.mpslots) {
-			g_MpSetup.chrslots = (g_MpSetup.chrslots & ~0xf) | (shader_survey.mpslots & 0xf);
-		}
+		g_MpSetup.chrslots = (g_MpSetup.chrslots & ~0xf)
+			| ((shader_survey.mpslots ? shader_survey.mpslots : shader_survey_players()) & 0xf);
 
 		shader_survey.target = shader_survey.mpstage;
 		shader_survey.mpstage = 0;
@@ -162,5 +177,5 @@ void shader_survey_tick(void)
 		&& g_Vars.currentplayer->cameramode == CAMERAMODE_DEFAULT;
 	shader_survey.lvframe240 = g_Vars.lvframe240;
 	shader_survey.menuroot = g_MenuData.count > 0 ? g_MenuData.root : -1;
-	shader_survey.chrslots = g_MpSetup.chrslots;
+	shader_survey.chrslots = shader_survey_players();
 }

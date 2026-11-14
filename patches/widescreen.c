@@ -22,11 +22,17 @@
 //  - The game's own 16:9 (Options, Video) is anamorphic, a squeezed picture for a widescreen TV: it reads as Normal
 //    while Expand widens, so the picture isn't widened twice: in the Video menu too, and a game file saved then keeps
 //    Normal.
-// Split screen stays 4:3 (ws_ext() is 0 with more than one player), and so does Original, where every function here
-// does what the decompilation does, command for command.
+//  - The window's sides: the game fills its frame's edges black (vi_render_viewport_edges) and nothing else outside
+//    a view, so where nothing a frame draws is widened, the sides kept an old frame, stretched. That fill first fills
+//    the whole window black, once a frame.
+//  - The pause menu's blurred picture of the level (menugfx_render_bg_blur) reaches the window's sides.
+// In split screen a view as wide as the frame (two players, one above the other) is widened the same way, since RT64
+// widens it as it does one player's: with 4:3 culling the window's sides drew black. A view narrower than the frame
+// (two side by side, three or four players) stays 4:3, ws_ext() 0, black beside it, and so does Original, where every
+// function here does what the decompilation does, command for command.
 //
-// The functions are src/game/bg.c's, camera.c's, hudmsg.c's, bondgun.c's, radar.c's and options.c's as the
-// decompilation builds them for ntsc-final, with the changes marked.
+// The functions are src/game/bg.c's, camera.c's, hudmsg.c's, bondgun.c's, radar.c's, menugfx.c's and options.c's, and
+// src/lib/vi.c's vi_render_viewport_edges, as the decompilation builds them for ntsc-final, with the changes marked.
 
 #include "patches.h"
 #include "rt64_extended_gbi.h"
@@ -39,6 +45,8 @@
 #include "game/hudmsg.h"
 #include "game/inv.h"
 #include "game/lang.h"
+#include "game/menugfx.h"
+#include "game/gfxmemory.h"
 #include "game/mplayer/mplayer.h"
 #include "game/mplayer/scenarios.h"
 #include "game/options.h"
@@ -75,18 +83,14 @@ s32 bgun_get_ammo_state(s32 funcnum, struct handweaponinfo *info, struct hand *h
 void bgun_reset_abmag(struct abmag *abmag);
 Gfx *bgun_draw_hud_gauge(Gfx *gdl, s32 x1, s32 y1, s32 x2, s32 y2, struct abmag *abmag, s32 remaining, s32 capacity, u32 emptycolour, u32 filledcolour, bool flip);
 
-// The pixels past the frame's 4:3 the window shows on each side, in the frame's pixels: 0 with Original, in split
-// screen, and where the window is no wider than the frame. RT64 takes the frame's pixels as square.
-static f32 ws_ext(void)
+// The pixels past the frame's 4:3 the window shows on each side, in the frame's pixels: 0 with Original and where the
+// window is no wider than the frame. RT64 takes the frame's pixels as square.
+static f32 ws_frame_ext(void)
 {
 	f32 width;
 	f32 height;
 	f32 original;
 	f32 aspect;
-
-	if (PLAYERCOUNT() != 1) {
-		return 0.0f;
-	}
 
 	width = vi_get_width();
 	height = vi_get_height();
@@ -103,6 +107,17 @@ static f32 ws_ext(void)
 	}
 
 	return (height * aspect - width) * 0.5f;
+}
+
+// What ws_frame_ext() is for the current view: 0 for one narrower than the frame (split screen's halves side by side,
+// its quarters), which RT64 doesn't widen.
+static f32 ws_ext(void)
+{
+	if (vi_get_view_left() > 0 || vi_get_view_left() + vi_get_view_width() < vi_get_width()) {
+		return 0.0f;
+	}
+
+	return ws_frame_ext();
 }
 
 // The frame's pixels to spare, a few at 320 wide: what the window's width in them can be off from RT64's.
@@ -301,6 +316,184 @@ RECOMP_PATCH Gfx *bg_scissor_within_viewport(Gfx *gdl, s32 viewleft, s32 viewtop
 	}
 
 	gDPSetScissor(gdl++, G_SC_NON_INTERLACE, viewleft, viewtop, viewright, viewbottom);
+
+	return gdl;
+}
+
+// RT64's G_EX_FILLRECT_V1, which rt64_extended_gbi.h has no macro for: a fill rectangle placed from the origins given
+// (rt64 src/gbi/rt64_gbi_extended.cpp, fillrectV1), as paper-mario-recomp's patches/widescreen.c defines it. RT64
+// drops one whose right side, before it is moved from its origin, is left of its left side.
+#define gEXFillRectangle(cmd, lorigin, rorigin, ulx, uly, lrx, lry)                                                  \
+	G_EX_COMMAND2(cmd, PARAM(RT64_EXTENDED_OPCODE, 8, 24) | PARAM(G_EX_FILLRECT_V1, 24, 0),                         \
+			PARAM(lorigin, 12, 0) | PARAM(rorigin, 12, 12), PARAM((ulx) * 4, 16, 16) | PARAM((uly) * 4, 16, 0), \
+			PARAM((lrx) * 4, 16, 16) | PARAM((lry) * 4, 16, 0))
+
+RECOMP_PATCH Gfx *vi_render_viewport_edges(Gfx *gdl)
+{
+	gDPSetCycleType(gdl++, G_CYC_FILL);
+
+	// @recomp: the window black to its sides first, once a frame, where it is wider than the frame. Where nothing the
+	// frame draws is widened (the quarters of three or four players, the Combat Simulator's menus over their 4:3
+	// picture) the window's sides kept an old frame, stretched.
+	if (g_Vars.currentplayerindex == 0 && ws_frame_ext() > 0.0f) {
+		gDPSetFillColor(gdl++, GPACK_RGBA5551(0, 0, 0, 1) << 16 | GPACK_RGBA5551(0, 0, 0, 1));
+		gEXSetScissor(gdl++, G_SC_NON_INTERLACE, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, -8, 0, 8, vi_get_height());
+		gEXFillRectangle(gdl++, G_EX_ORIGIN_LEFT, G_EX_ORIGIN_RIGHT, -8, 0, 8, vi_get_height() - 1);
+		gDPPipeSync(gdl++);
+	}
+
+	gDPSetScissor(gdl++, G_SC_NON_INTERLACE, 0, 0, vi_get_width(), vi_get_height());
+	gDPSetFillColor(gdl++, GPACK_RGBA5551(0, 0, 0, 1) << 16 | GPACK_RGBA5551(0, 0, 0, 1));
+
+	if (PLAYERCOUNT() == 1
+			|| ((g_Vars.coopplayernum >= 0 || g_Vars.antiplayernum >= 0)
+				&& player_has_shared_viewport() && g_Vars.currentplayernum == 0)) {
+		// Single viewport
+		if (vi_get_view_top() > 0) {
+			// Fill above
+			gDPFillRectangle(gdl++, 0, 0, vi_get_width() - 1, vi_get_view_top() - 1);
+			gDPPipeSync(gdl++);
+		}
+
+		if (vi_get_view_top() + vi_get_view_height() < vi_get_height()) {
+			// Fill below
+			gDPFillRectangle(gdl++,
+					0, vi_get_view_top() + vi_get_view_height(),
+					vi_get_width() - 1, vi_get_height() - 1);
+			gDPPipeSync(gdl++);
+		}
+	} else {
+		if (g_Vars.currentplayerindex == 0) {
+			s32 topplayernum = 0;
+			s32 bottomplayernum = 0;
+			s32 tmpplayernum = 0;
+
+			if (PLAYERCOUNT() == 2) {
+				bottomplayernum = 1;
+				tmpplayernum = 1;
+			} else if (PLAYERCOUNT() >= 3) {
+				bottomplayernum = 2;
+				tmpplayernum = 2;
+			}
+
+			if (g_Vars.players[topplayernum]->viewtop > 0) {
+				// Fill above all viewports - full width
+				gDPFillRectangle(gdl++, 0, 0, vi_get_width() - 1, g_Vars.players[topplayernum]->viewtop - 1);
+				gDPPipeSync(gdl++);
+			}
+
+			if (g_Vars.players[bottomplayernum]->viewtop + g_Vars.players[bottomplayernum]->viewheight < vi_get_height()) {
+				// Fill below all viewports - full width
+				gDPFillRectangle(gdl++,
+						0, g_Vars.players[bottomplayernum]->viewtop + g_Vars.players[bottomplayernum]->viewheight,
+						vi_get_width() - 1, vi_get_height() - 1);
+				gDPPipeSync(gdl++);
+			}
+
+			// Horizontal middle line
+			gDPFillRectangle(gdl++,
+					0, g_Vars.players[tmpplayernum]->viewtop - 1,
+					vi_get_width() - 1, g_Vars.players[tmpplayernum]->viewtop - 1);
+			gDPPipeSync(gdl++);
+
+			if (PLAYERCOUNT() >= 3 ||
+					(PLAYERCOUNT() == 2 && (options_get_screen_split() == SCREENSPLIT_VERTICAL || g_Vars.fourmeg2player))) {
+				if (PLAYERCOUNT() == 2) {
+					tmpplayernum = 0;
+				}
+
+				// Vertical middle line
+				gDPFillRectangle(gdl++,
+						g_Vars.players[tmpplayernum]->viewleft + g_Vars.players[tmpplayernum]->viewwidth, 0,
+						g_Vars.players[tmpplayernum]->viewleft + g_Vars.players[tmpplayernum]->viewwidth, vi_get_height() - 1);
+				gDPPipeSync(gdl++);
+			}
+
+			if (PLAYERCOUNT() == 3) {
+				// Blank square in P4 spot
+				gDPFillRectangle(gdl++,
+						g_Vars.players[tmpplayernum]->viewleft + g_Vars.players[tmpplayernum]->viewwidth + 1, g_Vars.players[tmpplayernum]->viewtop,
+						vi_get_width() - 1, vi_get_height() - 1);
+				gDPPipeSync(gdl++);
+			}
+		}
+	}
+
+	return gdl;
+}
+
+// The pause menu's blurred picture of the level: a quad as wide as the frame, which RT64 draws through the menu's
+// widened projection, so it covered the 4:3 middle and the level stayed sharp beside it, cut at its edge.
+RECOMP_PATCH Gfx *menugfx_render_bg_blur(Gfx *gdl, u32 colour, s16 arg2, s16 arg3)
+{
+	Col *colours;
+	Vtx *vertices;
+	s32 ext;
+
+	if (IS4MB()) {
+		return menugfx_render_gradient(gdl, 0, 0, vi_get_width(), vi_get_height(), 0xff, 0xff, 0xff);
+	}
+
+	colours = gfx_allocate_colours(1);
+	vertices = gfx_allocate_vertices(4);
+
+	gDPPipeSync(gdl++);
+	gSPTexture(gdl++, 0xffff, 0xffff, 0, G_TX_RENDERTILE, G_ON);
+
+	gDPLoadTextureBlock(gdl++, g_BlurBuffer, G_IM_FMT_RGBA, G_IM_SIZ_16b, 40, 30, 0,
+			G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+			G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+
+	gDPPipeSync(gdl++);
+	gDPSetCycleType(gdl++, G_CYC_1CYCLE);
+	gDPSetAlphaCompare(gdl++, G_AC_NONE);
+	gDPSetCombineMode(gdl++, G_CC_MODULATEI, G_CC_MODULATEI);
+	gSPClearGeometryMode(gdl++, G_CULL_BOTH);
+	gDPSetTextureFilter(gdl++, G_TF_BILERP);
+
+	gDPSetRenderMode(gdl++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
+
+	// @recomp: out to the window's sides, ws_frame_ext() and the slack in the quad's units (a tenth of the frame's
+	// pixel at 320 wide), the blurred picture stretched across it. 0 where the window is no wider than the frame.
+	ext = 0;
+
+	if (ws_frame_ext() > 0.0f) {
+		ext = (s32) ((ws_frame_ext() + ws_slack()) * (SCREEN_320 * 10.0f) / vi_get_width());
+	}
+
+	*(u16 *)&vertices[0].x = arg2 - ext;
+	*(u16 *)&vertices[0].y = arg3;
+	vertices[0].z = -10;
+	*(u16 *)&vertices[1].x = arg2 + SCREEN_320 * 10u + 40 + ext;
+	*(u16 *)&vertices[1].y = arg3;
+	vertices[1].z = -10;
+	*(u16 *)&vertices[2].x = arg2 + SCREEN_320 * 10u + 40 + ext;
+	*(u16 *)&vertices[2].y = arg3 + SCREEN_240 * 10u + 50;
+	vertices[2].z = -10;
+	*(u16 *)&vertices[3].x = arg2 - ext;
+	*(u16 *)&vertices[3].y = arg3 + SCREEN_240 * 10u + 50;
+	vertices[3].z = -10;
+
+	vertices[0].s = 0;
+	vertices[0].t = 0;
+	vertices[1].s = SCREEN_320 * 4;
+	vertices[1].t = 0;
+	vertices[2].s = SCREEN_320 * 4;
+	vertices[2].t = SCREEN_320 * 3;
+	vertices[3].s = 0;
+	vertices[3].t = SCREEN_320 * 3;
+
+	vertices[0].colour = 0;
+	vertices[1].colour = 0;
+	vertices[2].colour = 0;
+	vertices[3].colour = 0;
+
+	colours[0].word = colour;
+
+	gSPColor(gdl++, osVirtualToPhysical(colours), 1);
+	gSPVertex(gdl++, osVirtualToPhysical(vertices), 4, 0);
+
+	gSPTri2(gdl++, 0, 1, 2, 2, 3, 0);
 
 	return gdl;
 }

@@ -37,9 +37,12 @@ Still wrong or not yet checked:
   not heard through a device, and it hasn't been played longer than a few minutes.
 - The enhancements were played on the desktop build in Defection at 1280x720, each on and off: the level drawn
   to the window's edges, the ammo at its side, the mouse turning, tilting, aiming and changing weapon, and Field of
-  View. Not yet looked at with Expand: the HUD's messages and the mission timer at the left edge, the radar, the
-  fades and the cutscene bars. On the page the mouse hasn't been played: the plays are headless, and headless
-  Chrome refuses the pointer lock.
+  View. With Expand at 4:3, 16:9 and 21:9 and frames interpolated to 120 a second, six missions were played from
+  their opening cutscenes, through the pause menu, to their end screens or a death: the cutscene bars, the fades
+  and the pause menu's blurred level reach the window's sides, the mission timer and the HUD's messages its left
+  edge (the HUD's, 16:9 at most by default), and two players' split screen carries its radars. A row of green and
+  purple specks shows just above the cutscenes' bottom bar, at 4:3 too. On the page the mouse hasn't been played:
+  the plays are headless, and headless Chrome refuses the pointer lock.
 
 **The web page plays at [n64hub.com/perfect-dark](https://n64hub.com/perfect-dark/)**,
 from your own ROM through its Load ROM ([docs/web.md](docs/web.md)). In Chrome and Firefox it
@@ -56,7 +59,8 @@ the console does. They are the game's own code (`patches/`, `src/`), taken from 
   interpolates the game's frames up to the display's refresh rate.
 - **Widescreen**: the 3D widens to the window's aspect ratio, and the game draws what the wider view shows: rooms,
   props and guards past the 4:3 edges aren't culled or cut off. The mission timer, the HUD's messages, the ammo and
-  the radar move out to the window's edges; the crosshair and the gun stay centred. Split screen stays 4:3. The
+  the radar move out to the window's edges; the crosshair and the gun stay centred. Two players' split screen widens
+  the same way, each half as wide as the window; three or four players' quarters stay 4:3, black beside them. The
   game's own 16:9 setting (a squeezed picture for a widescreen TV) reads as Normal while Expand widens, in its menu
   and in a game file saved then too.
 - **Field of view**: Joanna sees 70 to 100 degrees from the top of the screen to the bottom, where the game shows 60.

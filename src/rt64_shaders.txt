@@ -31,7 +31,9 @@
 # it, as the Carrington Institute's training does) missed 4, the same in Chrome and Firefox: its lens's rows (which
 # Infiltration's intro, its film interlace, missed too) and its rectangle, 2 any level needs, above the first section,
 # and 1 in each. And Air Base's intro, its horizon scanner, missed 1. Then the extended plan
-# (tools/play_plan_extended.json) at 3840x2000 missed 5 in Villa in Firefox, none in Chrome.
+# (tools/play_plan_extended.json) at 3840x2000 missed 5 in Villa in Firefox, none in Chrome. And the pads plan
+# (tools/play_plan_pads.json), two players' split screen in a Combat Simulator match on Skedar, missed 27 in Chrome
+# at three sizes, which the last section, combat, holds: no recording plays Combat Simulator.
 # A new recording drops them unless they are added again.
 00504240 0080eccf fcff97ff ff2dfeff 04cb540b
 00504240 0089ec4f fcffffff fffdf6fb 1cc9540b
@@ -1725,3 +1727,31 @@ c4104dd8 00992c0f fc26a004 1f1093fb 1807540c
 0c1849d8 00992c4f fc26a004 1ffc93fc 188e000c
 0c1849d8 0099ac4f fc26a004 1f1093ff 188e0008
 0c184b50 00982c4f fc111404 ff13ffff 08075408
+section combat
+0c1849d8 0099ac0f fc26a004 1f1093ff 199f100c
+0c1849d8 0099ac0f fc26a004 1f1093ff 1bbe440c
+00504240 00802cff fcffffff fffdf6fb 0800000b
+005041c8 00892c7f fcffffff fffe793c 1cc95508
+00504240 00892c7f fcffffff fffdf6fb 1cc9550b
+00504240 0080ecff fcff97ff ff2dfeff 04cb540b
+00504240 00800cff fcffffff fffdf6fb 0800000b
+0c1841c8 00910cff fc26a005 1f1493ff 1ccf540b
+00504240 00892c7f fcffffff fffdf6fb 1cc9540b
+00504240 00802cff fcffffff fffe793c 08000008
+00504240 0080ecff fcffffff fffdf6fb 0800000b
+00504240 00892c7f fcffffff fffdf6fb 1800018b
+c4112078 0099ac7f fc26a004 1f1093ff 1ccf540c
+c4112078 0099ac7f fc26a004 1f1093ff 1807540c
+00504240 00892c7f fcffffff fffdf6fb 1801540b
+c4112078 0098ac7f fc26a004 1f1093ff 0807540c
+c4112078 0098ac7f fc26a004 1f1093ff 0ccf540c
+c4112078 0099ac7f fc26a004 1f1093ff 18071008
+c4112078 0098ac7f fc26a004 1f1093ff 08075408
+c4112078 0098ac7f fc26a004 1f1093ff 0ccf5408
+c4112078 0099ac7f fc26a004 1f1093ff 1ccf5408
+00504240 00892c7f fcffffff fffdf6fb 1801100b
+00504240 0080ecff fcffffff fffe793c 0000000b
+c4112078 00992c0f fc26a004 1f1093fb 18060088
+c41049d8 00992c0f fc26a004 1f1093fb 1ccf5408
+005041c8 00892c7f fcffffff fffe793c 18011008
+005041c8 00892c7f fcffffff fffe793c 18015408

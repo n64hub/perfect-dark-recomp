@@ -33,7 +33,8 @@
 # and 1 in each. And Air Base's intro, its horizon scanner, missed 1. Then the extended plan
 # (tools/play_plan_extended.json) at 3840x2000 missed 5 in Villa in Firefox, none in Chrome. And the pads plan
 # (tools/play_plan_pads.json), two players' split screen in a Combat Simulator match on Skedar, missed 27 in Chrome
-# at three sizes, which the last section, combat, holds: no recording plays Combat Simulator.
+# at three sizes, and 3 more with three players, which the last section, combat, holds: no recording plays
+# Combat Simulator.
 # A new recording drops them unless they are added again.
 00504240 0080eccf fcff97ff ff2dfeff 04cb540b
 00504240 0089ec4f fcffffff fffdf6fb 1cc9540b
@@ -1755,3 +1756,6 @@ c4112078 00992c0f fc26a004 1f1093fb 18060088
 c41049d8 00992c0f fc26a004 1f1093fb 1ccf5408
 005041c8 00892c7f fcffffff fffe793c 18011008
 005041c8 00892c7f fcffffff fffe793c 18015408
+c4112078 0099ac7f fc26a004 1f1093ff 18075408
+c41049d8 0099ac0f fc26ea04 1f10ffff 1a26220c
+c4104dd8 00992c0f fc26ea04 1f10ffff 188e000c

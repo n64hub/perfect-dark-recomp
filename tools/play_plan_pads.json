@@ -6,9 +6,9 @@
   "CMakeLists.txt). From the file menu tools/shader_survey.js opens the Combat Simulator's menu as the main menu's",
   "Combat Simulator does (mpMenu), and the second pad's Start joins player 2 there, the game's own way: it needs both",
   "players joined. The survey then starts a combat match on Skedar for them (mpStart), as the menu does once both are",
-  "ready, and the match plays in split screen, which stays 4:3 at any window (patches/widescreen.c), each half with",
-  "its radar: about 40 s of the game's time, player 1 walking and turning on the keyboard and player 2 on its pad's",
-  "left stick, each shot taken where only one of them has moved."
+  "ready, and the match plays in split screen, its two halves one above the other and each as wide as the window",
+  "(patches/widescreen.c), each with its radar: about 40 s of the game's time, player 1 walking and turning on the",
+  "keyboard and player 2 on its pad's left stick, each shot taken where only one of them has moved."
  ],
  "page": "PerfectDarkRecompiled.html",
  "load": [["until", "RT64: all \\d+ prebuilt shaders built|once the game draws", 45000], ["wait", 5000]],

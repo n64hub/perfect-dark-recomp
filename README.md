@@ -56,7 +56,8 @@ the console does. They are the game's own code (`patches/`, `src/`), taken from 
   interpolates the game's frames up to the display's refresh rate.
 - **Widescreen**: the 3D widens to the window's aspect ratio, and the game draws what the wider view shows: rooms,
   props and guards past the 4:3 edges aren't culled or cut off. The mission timer, the HUD's messages, the ammo and
-  the radar move out to the window's edges; the crosshair and the gun stay centred. Split screen stays 4:3. The
+  the radar move out to the window's edges; the crosshair and the gun stay centred. Two players' split screen widens
+  the same way, each half as wide as the window; three or four players' quarters stay 4:3, black beside them. The
   game's own 16:9 setting (a squeezed picture for a widescreen TV) reads as Normal while Expand widens, in its menu
   and in a game file saved then too.
 - **Field of view**: Joanna sees 70 to 100 degrees from the top of the screen to the bottom, where the game shows 60.

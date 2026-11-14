@@ -25,12 +25,13 @@
 //  - The window's sides: the game fills its frame's edges black (vi_render_viewport_edges) and nothing else outside
 //    a view, so where nothing a frame draws is widened, the sides kept an old frame, stretched. That fill first fills
 //    the whole window black, once a frame.
+//  - The pause menu's blurred picture of the level (menugfx_render_bg_blur) reaches the window's sides.
 // In split screen a view as wide as the frame (two players, one above the other) is widened the same way, since RT64
 // widens it as it does one player's: with 4:3 culling the window's sides drew black. A view narrower than the frame
 // (two side by side, three or four players) stays 4:3, ws_ext() 0, black beside it, and so does Original, where every
 // function here does what the decompilation does, command for command.
 //
-// The functions are src/game/bg.c's, camera.c's, hudmsg.c's, bondgun.c's, radar.c's and options.c's, and
+// The functions are src/game/bg.c's, camera.c's, hudmsg.c's, bondgun.c's, radar.c's, menugfx.c's and options.c's, and
 // src/lib/vi.c's vi_render_viewport_edges, as the decompilation builds them for ntsc-final, with the changes marked.
 
 #include "patches.h"
@@ -44,6 +45,8 @@
 #include "game/hudmsg.h"
 #include "game/inv.h"
 #include "game/lang.h"
+#include "game/menugfx.h"
+#include "game/gfxmemory.h"
 #include "game/mplayer/mplayer.h"
 #include "game/mplayer/scenarios.h"
 #include "game/options.h"
@@ -415,6 +418,82 @@ RECOMP_PATCH Gfx *vi_render_viewport_edges(Gfx *gdl)
 			}
 		}
 	}
+
+	return gdl;
+}
+
+// The pause menu's blurred picture of the level: a quad as wide as the frame, which RT64 draws through the menu's
+// widened projection, so it covered the 4:3 middle and the level stayed sharp beside it, cut at its edge.
+RECOMP_PATCH Gfx *menugfx_render_bg_blur(Gfx *gdl, u32 colour, s16 arg2, s16 arg3)
+{
+	Col *colours;
+	Vtx *vertices;
+	s32 ext;
+
+	if (IS4MB()) {
+		return menugfx_render_gradient(gdl, 0, 0, vi_get_width(), vi_get_height(), 0xff, 0xff, 0xff);
+	}
+
+	colours = gfx_allocate_colours(1);
+	vertices = gfx_allocate_vertices(4);
+
+	gDPPipeSync(gdl++);
+	gSPTexture(gdl++, 0xffff, 0xffff, 0, G_TX_RENDERTILE, G_ON);
+
+	gDPLoadTextureBlock(gdl++, g_BlurBuffer, G_IM_FMT_RGBA, G_IM_SIZ_16b, 40, 30, 0,
+			G_TX_NOMIRROR | G_TX_CLAMP, G_TX_NOMIRROR | G_TX_CLAMP,
+			G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+
+	gDPPipeSync(gdl++);
+	gDPSetCycleType(gdl++, G_CYC_1CYCLE);
+	gDPSetAlphaCompare(gdl++, G_AC_NONE);
+	gDPSetCombineMode(gdl++, G_CC_MODULATEI, G_CC_MODULATEI);
+	gSPClearGeometryMode(gdl++, G_CULL_BOTH);
+	gDPSetTextureFilter(gdl++, G_TF_BILERP);
+
+	gDPSetRenderMode(gdl++, G_RM_XLU_SURF, G_RM_XLU_SURF2);
+
+	// @recomp: out to the window's sides, ws_frame_ext() and the slack in the quad's units (a tenth of the frame's
+	// pixel at 320 wide), the blurred picture stretched across it. 0 where the window is no wider than the frame.
+	ext = 0;
+
+	if (ws_frame_ext() > 0.0f) {
+		ext = (s32) ((ws_frame_ext() + ws_slack()) * (SCREEN_320 * 10.0f) / vi_get_width());
+	}
+
+	*(u16 *)&vertices[0].x = arg2 - ext;
+	*(u16 *)&vertices[0].y = arg3;
+	vertices[0].z = -10;
+	*(u16 *)&vertices[1].x = arg2 + SCREEN_320 * 10u + 40 + ext;
+	*(u16 *)&vertices[1].y = arg3;
+	vertices[1].z = -10;
+	*(u16 *)&vertices[2].x = arg2 + SCREEN_320 * 10u + 40 + ext;
+	*(u16 *)&vertices[2].y = arg3 + SCREEN_240 * 10u + 50;
+	vertices[2].z = -10;
+	*(u16 *)&vertices[3].x = arg2 - ext;
+	*(u16 *)&vertices[3].y = arg3 + SCREEN_240 * 10u + 50;
+	vertices[3].z = -10;
+
+	vertices[0].s = 0;
+	vertices[0].t = 0;
+	vertices[1].s = SCREEN_320 * 4;
+	vertices[1].t = 0;
+	vertices[2].s = SCREEN_320 * 4;
+	vertices[2].t = SCREEN_320 * 3;
+	vertices[3].s = 0;
+	vertices[3].t = SCREEN_320 * 3;
+
+	vertices[0].colour = 0;
+	vertices[1].colour = 0;
+	vertices[2].colour = 0;
+	vertices[3].colour = 0;
+
+	colours[0].word = colour;
+
+	gSPColor(gdl++, osVirtualToPhysical(colours), 1);
+	gSPVertex(gdl++, osVirtualToPhysical(vertices), 4, 0);
+
+	gSPTri2(gdl++, 0, 1, 2, 2, 3, 0);
 
 	return gdl;
 }

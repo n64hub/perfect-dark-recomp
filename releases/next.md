@@ -1,1 +1,0 @@
-- The row of green and purple specks just above the cutscenes' bottom bar is gone, as are the ones at the bottom of the view with a blur or night vision on.

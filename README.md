@@ -40,9 +40,8 @@ Still wrong or not yet checked:
   View. With Expand at 4:3, 16:9 and 21:9 and frames interpolated to 120 a second, six missions were played from
   their opening cutscenes, through the pause menu, to their end screens or a death: the cutscene bars, the fades
   and the pause menu's blurred level reach the window's sides, the mission timer and the HUD's messages its left
-  edge (the HUD's, 16:9 at most by default), and two players' split screen carries its radars. A row of green and
-  purple specks shows just above the cutscenes' bottom bar, at 4:3 too. On the page the mouse hasn't been played:
-  the plays are headless, and headless Chrome refuses the pointer lock.
+  edge (the HUD's, 16:9 at most by default), and two players' split screen carries its radars. On the page the mouse
+  hasn't been played: the plays are headless, and headless Chrome refuses the pointer lock.
 
 **The web page plays at [n64hub.com/perfect-dark](https://n64hub.com/perfect-dark/)**,
 from your own ROM through its Load ROM ([docs/web.md](docs/web.md)). In Chrome and Firefox it

@@ -100,6 +100,11 @@ add_compile_definitions(
 include(${CMAKE_SOURCE_DIR}/lib/N64Recomp-browser/patches/apply.cmake)
 n64recomp_browser_apply_patches(${CMAKE_SOURCE_DIR}/lib)
 
+# On the desktop too, as the page always has it: Fix LR with Scissor leaves a rect a pixel tall as the game drew it.
+# The blurs and night vision copy the view back a row at a time (bview_copy_pixels), and the second to last row, a
+# pixel above the scissor, was stretched over the last one, drawn from TMEM past the row loaded: green and purple
+# specks every 32 pixels above the cutscenes' bottom bar.
+set(RT64_KEEP_THIN_RECTS ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rt64 ${CMAKE_BINARY_DIR}/rt64)
 
 set(BUILD_SHARED_LIBS OFF)

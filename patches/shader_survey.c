@@ -33,11 +33,16 @@
 // join. A stage written to `mpstage` (STAGE_MP_SKEDAR, 0x32) then starts a combat match there for those players, or
 // for `mpslots`' players where it isn't 0 (a desktop build with only a keyboard plays split screen that way), as the menu
 // does once every player is ready (menutick's MENUROOT_START_MP_MATCH), and `mpstarted` counts the starts taken.
+//
+// `hudmsg` set while the player is in control shows a HUD message of the default type, at the left edge, as the level's
+// "One minute left." does (lv.c), so a plan can look at one where the window is wider than 4:3.
 
 #include "patches.h"
 #include "game/debug.h"
 #include "game/filemgr.h"
 #include "game/gamefile.h"
+#include "game/hudmsg.h"
+#include "game/lang.h"
 #include "game/mainmenu.h"
 #include "game/menu.h"
 #include "game/pak.h"
@@ -70,9 +75,10 @@ struct ShaderSurvey {
 	volatile u32 mpstarted;
 	volatile s32 menuroot;
 	volatile s32 chrslots;
+	volatile s32 hudmsg;
 };
 
-struct ShaderSurvey shader_survey = { { 0x53484452, 0x53525659 }, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0 }; // "SHDR" "SRVY"
+struct ShaderSurvey shader_survey = { { 0x53484452, 0x53525659 }, 0, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0 }; // "SHDR" "SRVY"
 
 MenuItemHandlerResult menuhandler_main_menu_combat_simulator(s32 operation, struct menuitem *item, union handlerdata *data);
 
@@ -178,4 +184,9 @@ void shader_survey_tick(void)
 	shader_survey.lvframe240 = g_Vars.lvframe240;
 	shader_survey.menuroot = g_MenuData.count > 0 ? g_MenuData.root : -1;
 	shader_survey.chrslots = shader_survey_players();
+
+	if (shader_survey.hudmsg && shader_survey.incontrol) {
+		shader_survey.hudmsg = 0;
+		hudmsg_create(lang_get(L_MISC_068), HUDMSGTYPE_DEFAULT); // "One minute left."
+	}
 }

@@ -1,3 +1,0 @@
-- With Expand, two players' split screen is widened to the window's sides like one player's view, its radars included, instead of drawing black past hard edges.
-- With Expand, the window beside three or four players' quarters and the Combat Simulator's menus is black, instead of an old frame stretched to its sides.
-- With Expand, the pause menu's and the end screen's blurred picture of the level reaches the window's sides.

@@ -17,7 +17,8 @@
 // is open, false after ms; joined(), the players in there, a bit each (0x1 player 1, 0x2 player 2), as each
 // controller's Start joins its own ("Player 2: Ready!"); and mpStart(stage, slots, ms), which starts a combat match on that stage (0x32
 // Skedar) for the players joined, or slots' players where slots isn't 0, and resolves true once the stage plays, false
-// after ms.
+// after ms. hudMsg() shows a HUD message at the left edge once the player is in control, as the level's "One minute
+// left." does, to look at one where the window is wider than 4:3.
 (() => {
   if (!window.__survey) {
     for (let a = 0x80000000; a < 0x81800000; a += 4) {
@@ -45,6 +46,7 @@
     while ((n64r(s + 36) === loads || window.stage() !== target) && Date.now() < end) await sleep(100);
     return n64r(s + 36) !== loads && window.stage() === target;
   };
+  window.hudMsg = () => { n64w(s + 88, 1); return 'stage 0x' + window.stage().toString(16); };
   window.setInvincible = () => { n64w(s + 20, 1); return 'stage 0x' + window.stage().toString(16); };
   window.newFile = async (ms) => {
     n64w(s + 52, 1);

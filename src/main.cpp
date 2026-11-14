@@ -497,7 +497,9 @@ int main(int argc, char** argv) {
             // RDP is done (sched_update_pending_artifacts). On the page a display list doesn't wait for its frame's copy
             // into RDRAM, which lands while the next list is drawn, so the glares read their depths a list later, in a list
             // of their own (patches/artifacts.c, recomp_pd_render_to_ram_late). The CPU wrote to no framebuffer with a
-            // copy pending in the shader recording's 21 levels (docs/web.md, Frame rate).
+            // copy pending in the shader recording's 21 levels. In a two-player split screen it writes the players'
+            // structs, which sit inside the bottom player's depth image, before the z-buffer, where no copy writes
+            // (docs/web.md, Frame rate).
             recompui::renderer::set_render_to_ram_late(true);
 #endif
             return recompui::renderer::create_render_context(rdram, window_handle, presentation_mode, developer_mode);

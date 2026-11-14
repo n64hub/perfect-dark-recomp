@@ -165,7 +165,17 @@ scheduler (`g_Sched`, `g_MainNumGfxTasks`) a few milliseconds at a time and from
   the chain: with two graphics tasks out a retrace starts no tick and the queue empties, so the next tick starts at a
   VI with its sample. That fits the 55-60 of the first capped plays, without the prebuilt shader list, 18 frames in
   20 VIs at Defection's start. The CPU wrote to no framebuffer with a late copy pending in the shader recording's 21
-  levels or in the plays.
+  levels or in the solo plays. In a two-player split screen it does, writing memory of its own: the game points the bottom
+  player's depth image a screen's width times height in bytes before the z-buffer (`zbuf_configure_rdp`,
+  `src/game/zbuf.c`), its scissor keeping that player's draws inside the z-buffer, whose top half holds both players'
+  depths, and the stage's memory pool has the two players' structs (`playermgr_allocate_players`) just below it, which
+  the game writes every tick. The copy writes only the rows drawn to, never those structs, but RT64 took any change in
+  the framebuffer's memory for a write to its frame and kept the CPU's memory in place of the whole copy: in the pads
+  plan's 40 s match (`tools/play_plan_pads.json`) the page from Pages logged that about 250 times, about one list in
+  five, and each time the z-buffer the glares read (`patches/artifacts.c`) lacked that list's bottom-player depths.
+  rt64-web 81c9893 compares only the rows a copy writes (N64Recomp-browser's docs/forks.md), which the page takes when
+  its N64Recomp-browser moves past it: a build with it played the same match logging none, the CPU still writing there
+  every tick.
 - Beside GoldenEye's page from Pages, before the patch, the regular plans played in turn uncapped, two of each, on an
   idle host: GoldenEye 358 and 347 presents a second, held by the uncapped rate (360), and Perfect Dark 340 and 329,
   with no WebGPU errors and no short sound in either. A present is RT64's interpolated frame, so even at 30 frames of

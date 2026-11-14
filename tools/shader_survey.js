@@ -12,7 +12,12 @@
 // menu, as New Agent does, and resolves true once it is saved, false after ms or if the save failed (with a console
 // line of its error); and complete(ms), which ends the mission playing as completed, as its own script does once its
 // objectives are done, and resolves true once the game has taken it (its endscreen follows), false after ms
-// (tools/play_plan_full.json plays the game through with them).
+// (tools/play_plan_full.json plays the game through with them). For the Combat Simulator (tools/play_plan_pads.json):
+// mpMenu(ms), which opens its menu from the file menu as the main menu's Combat Simulator does and resolves true once it
+// is open, false after ms; joined(), the players joined there, a bit each (0x1 player 1, 0x2 player 2), as each
+// controller's Start joins its own; and mpStart(stage, slots, ms), which starts a combat match on that stage (0x32
+// Skedar) for the players joined, or slots' players where slots isn't 0, and resolves true once the stage plays, false
+// after ms.
 (() => {
   if (!window.__survey) {
     for (let a = 0x80000000; a < 0x81800000; a += 4) {
@@ -53,6 +58,23 @@
     const end = Date.now() + ms;
     while (!window.inControl() && Date.now() < end) await sleep(100);
     return window.inControl();
+  };
+  window.joined = () => n64r(s + 84) & 0xf;
+  window.mpMenu = async (ms) => {
+    n64w(s + 64, 1);
+    const end = Date.now() + ms;
+    while ((n64r(s + 80) | 0) !== 3 && Date.now() < end) await sleep(100);
+    return (n64r(s + 80) | 0) === 3;
+  };
+  window.mpStart = async (stage, slots, ms) => {
+    const before = n64r(s + 76), loads = n64r(s + 36);
+    n64w(s + 72, slots);
+    n64w(s + 68, stage);
+    const end = Date.now() + ms;
+    while (n64r(s + 76) === before && Date.now() < end) await sleep(50);
+    if (n64r(s + 76) === before) return false;
+    while ((n64r(s + 36) === loads || window.stage() !== stage) && Date.now() < end) await sleep(100);
+    return n64r(s + 36) !== loads && window.stage() === stage;
   };
   window.complete = async (ms) => {
     const before = n64r(s + 48);

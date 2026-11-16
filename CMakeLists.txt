@@ -117,6 +117,11 @@ n64recomp_browser_apply_patches(${CMAKE_SOURCE_DIR}/lib)
 # pixel above the scissor, was stretched over the last one, drawn from TMEM past the row loaded: green and purple
 # specks every 32 pixels above the cutscenes' bottom bar.
 set(RT64_KEEP_THIN_RECTS ON CACHE BOOL "" FORCE)
+# On the desktop too, as the page always has it: the render targets of a framebuffer the CPU has overwritten are freed
+# once no draw has asked for them again in a while. RT64 otherwise keeps a target for every address the game ever drew
+# to, and each mission draws to addresses of its own: the desktop build grew about 120 MB of memory and as much video
+# memory a mission, never giving it back, 5.2 GB and 4.0 GB after 21 missions in 50 minutes (rt64 51c3fdd).
+set(RT64_FREE_DISCARDED_TARGETS ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rt64 ${CMAKE_BINARY_DIR}/rt64)
 
 set(BUILD_SHARED_LIBS OFF)

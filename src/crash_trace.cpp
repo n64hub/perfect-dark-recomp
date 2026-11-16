@@ -17,10 +17,12 @@ uint8_t* recomp_pd_rdram = nullptr;
 
 namespace {
 
-// RDRAM's reservation: KSEG0's 0x80000000 is rdram, and N64Recomp's memory macros reach 2 GB below it and 2 GB above.
+// RDRAM's reservation, the 4 GB from rdram (librecomp's allocation_size) N64Recomp's memory macros reach: KSEG0's
+// 0x80000000 is its first byte, and an address under 0x80000000 (an unrelocated 0x7f000000 pointer, a null one) lands
+// 2-4 GB in, past the RDRAM committed, so the N64 address is the offset plus 0x80000000 in 32 bits either way.
 void print_n64_address(uintptr_t address) {
     uintptr_t base = reinterpret_cast<uintptr_t>(recomp_pd_rdram);
-    if (base != 0 && address >= base - 0x80000000ull && address < base + 0x80000000ull) {
+    if (base != 0 && address >= base && address - base < 0x100000000ull) {
         fprintf(stderr, ", N64 address 0x%08X", static_cast<uint32_t>(address - base + 0x80000000ull));
     }
 }

@@ -17,15 +17,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-everything /W4")
     # File names in the debug info, which a crash's trace prints from the .pdb the release zip carries
-    # (src/crash_trace.cpp), and in __FILE__: the checkout's as ./src/..., and the rest of the builder's home as ~/...,
-    # never the builder's own folders. The later map wins where both match.
+    # (src/crash_trace.cpp), and in __FILE__: the checkout as C:/perfect-dark-recomp and the rest of the builder's home
+    # (where an xwin copy of the MSVC headers may be) as C:/home, never the builder's own folders. Absolute, since
+    # lld-link makes a relative one absolute under the folder it links in. The later map wins where both match. The
+    # exe names its .pdb by file name only (/pdbaltpath, below).
     file(TO_CMAKE_PATH "$ENV{USERPROFILE}" home)
     foreach (lang C CXX)
         if (home)
-            set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-ffile-prefix-map=${home}=~")
+            set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-ffile-prefix-map=${home}=C:/home")
         endif()
-        set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+        set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-ffile-prefix-map=${CMAKE_SOURCE_DIR}=C:/perfect-dark-recomp")
     endforeach()
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /pdbaltpath:%_PDB%")
 endif()
 
 # Opt out of the constexpr mutex constructor on Windows to avoid vcredist issues.

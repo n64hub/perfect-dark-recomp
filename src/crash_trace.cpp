@@ -1,10 +1,11 @@
 // Prints where the program crashed to stderr, which the launcher's log and a player's report carry: the exception (or
 // signal), the address it faulted on and, when that address is in the game's memory (RDRAM's reservation, 4 GB from
-// recomp_pd_rdram), the N64 address the game code used, then on Windows each frame of the crashing thread's stack,
-// named from PerfectDarkRecompiled.pdb beside the exe (tools/package_windows.sh puts it in the zip). Recompiled
-// functions carry the decomp's names (syms/dump.toml: joy_reset, bgunTick, ...), so a trace points at the game code
-// that crashed. Without the .pdb a frame is the module and the offset into it. Linux's release is
-// stripped, so there it prints the signal and the addresses only.
+// recomp_pd_rdram), the N64 address the game code used, then on Windows each frame of the crashing thread's stack.
+// A release's zip carries no .pdb (one holds the builder's folder names), so there a frame is the module and the
+// offset into it (PerfectDarkRecompiled.exe+0x1A2B3C), which the release's own .pdb, kept where it was built
+// (tools/release.sh), names later. Beside a build's .pdb a frame is named: recompiled functions carry the decomp's
+// names (syms/dump.toml: joy_reset, lv_tick, ...), so a trace points at the game code that crashed. Linux's release
+// is stripped, so there it prints the signal and the addresses only.
 //
 // install_crash_trace() is called first thing in main. It returns the crash to the system afterwards, so the exit
 // code stays the crash's (0xC0000005 for an access violation on Windows).
@@ -57,7 +58,12 @@ void print_stack(HANDLE process, HANDLE thread, CONTEXT context) {
         symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         symbol->MaxNameLen = 255;
         DWORD64 displacement = 0;
-        if (SymFromAddr(process, pc, &displacement, symbol)) {
+        // Only a module with its debug info: without it SymFromAddr names the nearest export, a wrong function.
+        IMAGEHLP_MODULE64 module_info{};
+        module_info.SizeOfStruct = sizeof(module_info);
+        bool has_symbols = SymGetModuleInfo64(process, pc, &module_info) &&
+            (module_info.SymType == SymPdb || module_info.SymType == SymDia || module_info.SymType == SymCv);
+        if (has_symbols && SymFromAddr(process, pc, &displacement, symbol)) {
             fprintf(stderr, "  %2d %s+0x%llX", i, symbol->Name, (unsigned long long)displacement);
             IMAGEHLP_LINE64 line{};
             line.SizeOfStruct = sizeof(line);
@@ -68,7 +74,7 @@ void print_stack(HANDLE process, HANDLE thread, CONTEXT context) {
             fprintf(stderr, "\n");
             continue;
         }
-        // No symbol: the module and the offset into it, which the release's .pdb names later.
+        // No debug info: the module and the offset into it, which the release's .pdb names later.
         HMODULE module = nullptr;
         char name[MAX_PATH] = "?";
         if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,

@@ -16,11 +16,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-everything /W4")
-    # The debug info, which a crash's trace names functions and files from (src/crash_trace.cpp, the .pdb the release
-    # zip carries), has the builder's home folder as C:/home and no compile command lines, and the exe names its .pdb
-    # by file name only: the source and header paths name no account. The flag is the same in every checkout on a
-    # machine, so ccache's hits between checkouts stay (above). What lld-link writes of its own (each object's and
-    # import library's path) is left: tools/release.sh says where a release is built.
+    # The builder's home folder is C:/home in __FILE__ and the debug info, which has no compile command lines, and the
+    # exe names its .pdb by file name only, so the exe a release ships names no account. The flag is the same in every
+    # checkout on a machine, so ccache's hits between checkouts stay (above). The .pdb still names it (lld-link writes
+    # each object's and import library's own path), so a release keeps it unpublished (tools/release.sh).
     file(TO_CMAKE_PATH "$ENV{USERPROFILE}" home)
     foreach (lang C CXX)
         if (home)

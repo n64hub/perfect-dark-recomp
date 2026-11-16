@@ -20,8 +20,11 @@
 # stop this one. A clone kept from one release to the next keeps build/windows and build/linux, so there only what
 # changed builds.
 #
-# Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (its .pdb, the DLLs, assets/,
-# recompcontrollerdb.txt and LICENSE beside the exe). It needs the Visual C++ 2015-2022 redistributable (x64).
+# Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (the DLLs, assets/,
+# recompcontrollerdb.txt and LICENSE beside the exe). It needs the Visual C++ 2015-2022 redistributable (x64). Its .pdb
+# goes to out/<name>-windows-x64.pdb and is never published (it holds the builder's folder names): a player's crash
+# prints PerfectDarkRecompiled.exe+<offset> lines (src/crash_trace.cpp), which it names, e.g.
+# llvm-symbolizer --obj=<the release's exe> --relative-address <offset>, with the .pdb beside that exe.
 # Linux: tools/build_linux.sh's program, built in tools/docker/Dockerfile.linux, Ubuntu 22.04, so it needs glibc 2.35
 # or newer, with its debug info stripped. It carries the libSDL2 it was built with and libatomic (not on every system)
 # beside the binary (RUNPATH $ORIGIN), as the Windows zip carries SDL2.dll, and is a .tar.gz so the binary stays
@@ -77,6 +80,7 @@ windows)
     clean
     bash tools/package_windows.sh
     mv build/PerfectDarkRecompiled-windows-x64.zip "out/$name-windows-x64.zip"
+    cp build/windows/PerfectDarkRecompiled.pdb "out/$name-windows-x64.pdb"
     echo "$commit" > "out/$name-windows-x64.zip.commit"
     echo "out/$name-windows-x64.zip ($(du -h "out/$name-windows-x64.zip" | cut -f1))"
     ;;

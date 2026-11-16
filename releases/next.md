@@ -1,1 +1,1 @@
-- A crash now writes where it happened at the end of the log: the error, the address, and on Windows the game functions it was in (the zip carries `PerfectDarkRecompiled.pdb` for their names). Those lines in a crash report say which part of the game crashed.
+- A crash now writes where it happened at the end of the log: the error, the address it faulted on, and on Windows the program's stack. Those lines in a crash report say which part of the game crashed.

@@ -22,7 +22,9 @@ is there at the next start. Releases for Windows (a zip: unzip it and run `Perfe
 folder) and Linux on x86-64 (a `.tar.gz`: extract it and run `PerfectDarkRecompiled` in that folder) are on the
 [Releases page](https://github.com/n64hub/perfect-dark-recomp/releases), without the ROM. The Linux build needs
 glibc 2.35 or newer (Ubuntu 22.04, Debian 12 or later), a Vulkan driver, and GTK 3 and FreeType, which desktop
-distributions have; it brings its own SDL2. Or build it as docs/building.md says.
+distributions have; it brings its own SDL2. Or build it as docs/building.md says. A crash prints where it happened
+at the end of the log (`[pd] crash:` and the lines under it, src/crash_trace.cpp): those lines in an
+[issue](https://github.com/n64hub/perfect-dark-recomp/issues) say which part of the game crashed.
 
 Still wrong or not yet checked:
 

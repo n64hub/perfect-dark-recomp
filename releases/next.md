@@ -1,3 +1,0 @@
-- A crash now writes where it happened at the end of the log: the error, the address it faulted on, and on Windows the program's stack. Those lines in a crash report say which part of the game crashed.
-- The game no longer grows its memory and video memory by about 120 MB each with every mission played: a long session (half an hour and more) used to keep adding to both until it ran short.
-- When the graphics device is lost (a driver reset, a GPU hang), the game starts again on a new one instead of crashing or freezing, and closes with a message saying why if it is lost again within a minute.

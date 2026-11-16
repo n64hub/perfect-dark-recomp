@@ -386,7 +386,11 @@ void on_launcher_init(recompui::LauncherMenu* menu) {
     game_options_menu->add_default_options();
 }
 
+// src/crash_trace.cpp: a crash prints where it happened to stderr, so the launcher's log says.
+void install_crash_trace();
+
 int main(int argc, char** argv) {
+    install_crash_trace();
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--boot") == 0) {
             autoboot = true;

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Puts the program tools/build_windows.sh built into build/PerfectDarkRecompiled-windows-x64.zip, a folder a player
 # unzips and runs: PerfectDarkRecompiled.exe, the DLLs beside it (SDL2, dxcompiler, dxil), assets/ (the menus'),
-# recompcontrollerdb.txt and LICENSE. No ROM and nothing read from one: the program holds the recompiled code, as the
-# page does, and the player picks their ROM in the launcher (Load ROM). From Git Bash, anywhere in the checkout:
+# recompcontrollerdb.txt and LICENSE. Not the .pdb, which holds the builder's folder names: tools/release.sh keeps
+# it. No ROM and nothing read from one: the program holds the recompiled code, as the page does, and the player picks
+# their ROM in the launcher (Load ROM). From Git Bash, anywhere in the checkout:
 #
 #     tools/package_windows.sh
 set -euo pipefail

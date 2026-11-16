@@ -16,6 +16,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-everything /W4")
+    # The builder's home folder is C:/home in __FILE__ and the debug info, which has no compile command lines, and the
+    # exe names its .pdb by file name only, so the exe a release ships names no account. The flag is the same in every
+    # checkout on a machine, so ccache's hits between checkouts stay (above). The .pdb still names it (lld-link writes
+    # each object's and import library's own path), so a release keeps it unpublished (tools/release.sh).
+    file(TO_CMAKE_PATH "$ENV{USERPROFILE}" home)
+    foreach (lang C CXX)
+        if (home)
+            set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-ffile-prefix-map=${home}=C:/home")
+        endif()
+        set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-gno-codeview-command-line")
+    endforeach()
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /pdbaltpath:%_PDB%")
 endif()
 
 # Opt out of the constexpr mutex constructor on Windows to avoid vcredist issues.
@@ -228,6 +240,7 @@ add_executable(PerfectDarkRecompiled)
 
 target_sources(PerfectDarkRecompiled PRIVATE
     ${CMAKE_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_SOURCE_DIR}/src/crash_trace.cpp
     ${CMAKE_SOURCE_DIR}/src/config.cpp
     ${CMAKE_SOURCE_DIR}/src/mouse.cpp
     ${CMAKE_SOURCE_DIR}/src/ext_controls.cpp
@@ -314,7 +327,7 @@ if (WIN32)
             "${CMAKE_SOURCE_DIR}/lib/rt64/src/contrib/dxc/bin/x64/dxcompiler.dll"
             $<TARGET_FILE_DIR:PerfectDarkRecompiled>)
 
-    target_link_libraries(PerfectDarkRecompiled PRIVATE SDL2 Winmm.lib)
+    target_link_libraries(PerfectDarkRecompiled PRIVATE SDL2 Winmm.lib Dbghelp.lib)
     # The executable's icon, which SDL also gives the window (tools/icon.py makes it).
     target_sources(PerfectDarkRecompiled PRIVATE ${CMAKE_SOURCE_DIR}/icons/app.rc)
     # A window program, so no console window opens behind the game; main() stays the entry point. The log still

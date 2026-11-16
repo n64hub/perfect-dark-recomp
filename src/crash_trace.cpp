@@ -147,7 +147,8 @@ void install_crash_trace() {
     action.sa_sigaction = print_crash;
     action.sa_flags = SA_SIGINFO | SA_RESETHAND;
     sigemptyset(&action.sa_mask);
-    for (int signal : { SIGSEGV, SIGBUS, SIGILL, SIGFPE }) {
+    const int signals[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE };
+    for (int signal : signals) {
         sigaction(signal, &action, nullptr);
     }
 }

@@ -27,8 +27,10 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "M
             set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-ffile-prefix-map=${home}=C:/home")
         endif()
         set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-ffile-prefix-map=${CMAKE_SOURCE_DIR}=C:/perfect-dark-recomp")
+        set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-gno-codeview-command-line")
+        set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /clang:-fdebug-compilation-dir=C:/perfect-dark-recomp/build")
     endforeach()
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /pdbaltpath:%_PDB%")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /pdbaltpath:%_PDB% /pdbsourcepath:C:\perfect-dark-recomp\build")
 endif()
 
 # Opt out of the constexpr mutex constructor on Windows to avoid vcredist issues.

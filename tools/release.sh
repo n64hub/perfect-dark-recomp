@@ -20,7 +20,7 @@
 # stop this one. A clone kept from one release to the next keeps build/windows and build/linux, so there only what
 # changed builds.
 #
-# Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (the DLLs, assets/,
+# Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (its .pdb, the DLLs, assets/,
 # recompcontrollerdb.txt and LICENSE beside the exe). It needs the Visual C++ 2015-2022 redistributable (x64).
 # Linux: tools/build_linux.sh's program, built in tools/docker/Dockerfile.linux, Ubuntu 22.04, so it needs glibc 2.35
 # or newer, with its debug info stripped. It carries the libSDL2 it was built with and libatomic (not on every system)

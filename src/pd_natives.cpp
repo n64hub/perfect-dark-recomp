@@ -35,7 +35,11 @@ constexpr uint32_t segment_starts[] = { PD_LIB_START, PD_DATA_START, PD_INFLATE_
 } // namespace
 
 // recomp_pd_relocate(segment): once the game has unzipped a segment, its listed words go from retail to relinked.
+// Where RDRAM is, for src/crash_trace.cpp's N64 address of a fault.
+extern uint8_t* recomp_pd_rdram;
+
 extern "C" void recomp_pd_relocate(uint8_t* rdram, recomp_context* ctx) {
+    recomp_pd_rdram = rdram;
     uint32_t segment = (uint32_t)ctx->r4;
     if (segment >= sizeof(segment_starts) / sizeof(segment_starts[0])) {
         ultramodern::error_handling::message_box("recomp_pd_relocate: no such segment");

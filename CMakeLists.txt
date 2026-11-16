@@ -228,6 +228,7 @@ add_executable(PerfectDarkRecompiled)
 
 target_sources(PerfectDarkRecompiled PRIVATE
     ${CMAKE_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_SOURCE_DIR}/src/crash_trace.cpp
     ${CMAKE_SOURCE_DIR}/src/config.cpp
     ${CMAKE_SOURCE_DIR}/src/mouse.cpp
     ${CMAKE_SOURCE_DIR}/src/ext_controls.cpp
@@ -314,7 +315,7 @@ if (WIN32)
             "${CMAKE_SOURCE_DIR}/lib/rt64/src/contrib/dxc/bin/x64/dxcompiler.dll"
             $<TARGET_FILE_DIR:PerfectDarkRecompiled>)
 
-    target_link_libraries(PerfectDarkRecompiled PRIVATE SDL2 Winmm.lib)
+    target_link_libraries(PerfectDarkRecompiled PRIVATE SDL2 Winmm.lib Dbghelp.lib)
     # The executable's icon, which SDL also gives the window (tools/icon.py makes it).
     target_sources(PerfectDarkRecompiled PRIVATE ${CMAKE_SOURCE_DIR}/icons/app.rc)
     # A window program, so no console window opens behind the game; main() stays the entry point. The log still

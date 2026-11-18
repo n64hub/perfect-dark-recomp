@@ -117,6 +117,12 @@ n64recomp_browser_apply_patches(${CMAKE_SOURCE_DIR}/lib)
 # pixel above the scissor, was stretched over the last one, drawn from TMEM past the row loaded: green and purple
 # specks every 32 pixels above the cutscenes' bottom bar.
 set(RT64_KEEP_THIN_RECTS ON CACHE BOOL "" FORCE)
+# On the desktop too, as the page always has it: RT64 widens a frame's 3D only where the area the frame drew in (its
+# scissors, merged) has the frame's own shape, and with Expand vi_render_viewport_edges (patches/widescreen.c) fills
+# the window's sides black under a scissor reaching past the frame's. Counted in full, that area was the window's, so
+# no frame's 3D was widened: Defection's room drew at the game's 4:3 with black beside it. RT64_SCISSOR_INSIDE_FRAMEBUFFER
+# counts it only to the frame's edges.
+set(RT64_SCISSOR_INSIDE_FRAMEBUFFER ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rt64 ${CMAKE_BINARY_DIR}/rt64)
 
 set(BUILD_SHARED_LIBS OFF)

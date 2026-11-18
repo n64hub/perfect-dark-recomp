@@ -75,7 +75,7 @@ jobs:
         id: key
         shell: bash
         run: |
-          prefix="build-v1-$ImageOS-"
+          prefix="build-v2-$ImageOS-"
           echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
           echo "key=$prefix$ImageVersion-$(git ls-tree HEAD lib | git hash-object --stdin)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4

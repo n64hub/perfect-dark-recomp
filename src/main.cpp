@@ -63,7 +63,7 @@
 #endif
 
 
-const std::string version_string = "0.1.15";
+const std::string version_string = "0.1.16";
 
 template<typename... Ts>
 void exit_error(const char* str, Ts ...args) {

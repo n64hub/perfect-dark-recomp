@@ -1,0 +1,36 @@
+# The save run of N64Recomp-browser's save check (tools/frame_dump.mjs --saves, with tools/load_plan.txt; docs/building.md):
+# from a new folder, Start (Enter) through the title until the file menu's stage plays (g_StageNum 0x26, carried at
+# +0x18 of patches/shader_survey.c's struct, found by its magic words), New Agent (A, Space) and a name typed on the
+# keyboard: its default "Dark" deleted (A on DEL, held 100 ms, five times), down twice (the d-pad's K) to a, a, a, left
+# to j, j, j, down to t, t, t, and Start, then the Game Pak (A) at Select Location, which writes the agent file to the
+# EEPROM (saves/pd.n64.us.1.bin). The name is then found in RDRAM, aajjtt as the words 0x61616A6A,0x74740000 (the
+# agent's g_GameFile name, word-aligned), so a key the game took twice fails this run, which checks nothing, and not
+# the load run's find.
+0 find survey 0x53484452,0x53525659 60
+8 until survey+0x18 0xFFFFFFFF 0x26 120 Enter
+18 shot files
+19 key Space 100
+22 shot keyboard
+23 key Space 100
+24 key Space 100
+25 key Space 100
+26 key Space 100
+27 key Space 100
+28 key K 100
+29 key K 100
+30 key Space 100
+31 key Space 100
+32 key J 100
+33 key Space 100
+34 key Space 100
+35 key K 100
+36 key Space 100
+37 key Space 100
+38 shot name
+39 key Enter 100
+41 shot location
+42 key Space 100
+44 find typed 0x61616A6A,0x74740000 10
+45 saves changed 15
+47 shot created
+48 end

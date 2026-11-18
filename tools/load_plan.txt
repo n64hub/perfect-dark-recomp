@@ -1,0 +1,17 @@
+# The load run of N64Recomp-browser's save check (docs/building.md), after tools/save_plan.txt, the program started
+# again in the same folder: at the file menu (g_StageNum 0x26, the survey's +0x18) the game has read the agents off
+# the EEPROM into its file list, where aajjtt is a struct filelistfile's name at +6, so its "jjtt" and the zeros after
+# it are the words 0x6A6A7474,0x00000000, in RDRAM only if the name came off the EEPROM: a new folder's list has no
+# agent. Nothing is written by then. Then A loads the agent, as Choose Your Reality does: its name, word-aligned in
+# g_GameFile, is found again, and the game saves its boss file (bossfile_save, the last agent loaded), the second
+# write, through the check's links.
+0 find survey 0x53484452,0x53525659 60
+8 until survey+0x18 0xFFFFFFFF 0x26 120 Enter
+18 shot files
+19 find listed 0x6A6A7474,0x00000000 10
+20 saves same
+21 key Space 100
+24 find agent 0x61616A6A,0x74740000 10
+25 saves changed 15
+27 shot perfectmenu
+28 end

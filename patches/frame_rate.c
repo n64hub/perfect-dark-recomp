@@ -12,8 +12,8 @@
 // comes a VI later as the others do. Told the frame's own, a frame of two VIs among frames of one (a few a second in
 // a level) had RT64 plan two VIs of presents and drop half of them when the next frame came, and RT64's pacing, which
 // counts those drops as the GPU falling behind and paces to a multiple of the latest rate, held the page at 60
-// presents a second or below on a 240 Hz display in both browsers, its tries back up failing within a second
-// (N64Recomp-browser's plays.jsonl, set pd-fps). A run of slow frames still reads as their rate.
+// presents a second or below on a 240 Hz display in both browsers, its tries back up failing within a second. A run of
+// slow frames still reads as their rate.
 //
 // A tick that would find no controller sample newer than the last tick's while a poll is out is put off, retrace by
 // retrace, until the sample comes, for two VIs at most. As the game is, joy_debug_joy (src/lib/joy.c) stops and

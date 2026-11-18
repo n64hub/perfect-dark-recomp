@@ -125,10 +125,10 @@ extern "C" void recomp_pd_render_to_ram_late(uint8_t* rdram, recomp_context* ctx
 // recomp_pd_hold_at_30(): called once a tick (patches/frame_rate.c), whether the ticks after it are held to every other
 // VI, 30 a second. On the page, while the game can't keep 60 up: RT64 draws few frames between those of a game that
 // mixes frames of one and two VIs (it takes a frame's length from the shortest of the last three), so on a phone whose
-// CPU held the intro to 32 frames a second, the page presented 41-42 a second (N64Recomp-browser's docs/phones.md).
-// Held, every frame is two VIs and gets two. Two seconds in a row with 20-50 ticks each hold it (fewer is a load or a
-// stall, and a single one a load's end), and it tries 60 again for a second 10 s later, twice as long after each try
-// that didn't keep up, at most 80 s. As Rush 2049's recompilation does at its 60 fps (its src/frame_rate.cpp).
+// CPU held the intro to 32 frames a second, the page presented 41-42 a second. Held, every frame is two VIs and gets
+// two. Two seconds in a row with 20-50 ticks each hold it (fewer is a load or a stall, and a single one a load's end),
+// and it tries 60 again for a second 10 s later, twice as long after each try that didn't keep up, at most 80 s. As
+// Rush 2049's recompilation does at its 60 fps (its src/frame_rate.cpp).
 extern "C" void recomp_pd_hold_at_30(uint8_t* rdram, recomp_context* ctx) {
 #ifdef __EMSCRIPTEN__
     static struct {

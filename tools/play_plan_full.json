@@ -1,8 +1,8 @@
 {
  "header": [
   "The page's whole-game plan for N64Recomp-browser's tools/play_page.mjs, about 40 minutes: every solo mission on",
-  "Agent in the game's order, for a card that asks for the whole game (a play this long is not a regular one: that",
-  "repo's docs/playing.md, Which browser, how long). It boots as tools/play_plan_extended.json does, to the file menu,",
+  "Agent in the game's order, for a play of the whole game, which is not a regular one.",
+  "It boots as tools/play_plan_extended.json does, to the file menu,",
   "where tools/shader_survey.js makes an Agent file on the Game Pak as New Agent does, for each mission's end to save",
   "to, and starts dataDyne Central - Defection as mission select's Accept does (patches/shader_survey.c). Each",
   "mission's opening cutscene is watched to its end (Space only after 3 minutes), then Joanna is made invincible and",

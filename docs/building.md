@@ -195,15 +195,14 @@ start the next tick before the next sample, so the ticks after it miss too. `pat
 until the poll that is out has its sample, at the next VI; without it the same play draws Defection at 38.4,
 Investigation at 30.0 and Chicago at 48.8 ([web.md](web.md), Frame rate).
 
-Against N64Recomp-browser's checklist for a new recomp (its docs/new-recomp.md): Enter held through the boot opens
-the game's own Controller Pak Menu, as Start held at power-on does on a console, with no pak to choose, and its Exit
-goes on to the file menu, which finds the agent file saved before the restart (4b, 5a). The game never calls
-`osSetTime`, and reads `osGetTime` only for its audio thread's profiling, `__osContInit`'s wait until half a second
-after the boot and the reset's wait, so time spent in the launcher reaches nothing a player sees (6a). A first launch
-plays with the defaults it writes: Field of View's change callback sets what its C++ starting value already is, and
-the mouse's options are read where they are used (5b). Two boots recorded through SDL's disk driver, one with the
-window held in Windows' move loop for 1.5 s five times, played the same sound second for second, with no gap past the
-logos' own silences (6b).
+The Controller Pak, the clock, a first launch and sound, as played: Enter held through the boot opens the game's own
+Controller Pak Menu, as Start held at power-on does on a console, with no pak to choose, and its Exit goes on to the
+file menu, which finds the agent file saved before the restart. The game never calls `osSetTime`, and reads `osGetTime`
+only for its audio thread's profiling, `__osContInit`'s wait until half a second after the boot and the reset's wait, so
+time spent in the launcher reaches nothing a player sees. A first launch plays with the defaults it writes: Field of
+View's change callback sets what its C++ starting value already is, and the mouse's options are read where they are
+used. Two boots recorded through SDL's disk driver, one with the window held in Windows' move loop for 1.5 s five times,
+played the same sound second for second, with no gap past the logos' own silences.
 
 ### On Windows
 

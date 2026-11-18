@@ -11,8 +11,7 @@ What is the game's own stays here: the `EMSCRIPTEN` branches of `CMakeLists.txt`
 list's header says how to record it again), the play plans (`tools/play_plan.json`, `tools/play_plan_extended.json`,
 `tools/play_plan_full.json`) and the survey that drives them (`patches/shader_survey.c`, `tools/shader_survey.js`). The rest is
 N64Recomp-browser's: `docs/porting.md` (WebGPU and the shaders, prebuilt shader lists, Emscripten), `docs/playing.md`
-(playing and measuring a page), `docs/forks.md` and `docs/findings.md`. Every play of this game's page is a line in
-N64Recomp-browser's `plays.jsonl` (game `pd`), never a record here.
+(playing and measuring a page), `docs/forks.md` and `docs/findings.md`.
 
 ## Build it
 
@@ -72,10 +71,10 @@ aims and Space skips a cutscene.
 The page has the desktop program's options with the same defaults (README, Modern enhancements): Aspect Ratio Expand
 with the game drawing to the window's edges, HUD Placement 16:9, Field of View Original, Mouse Sensitivity 50%. They
 cost the page nothing measurable: in headless Chrome at 1256x645 on a desktop GPU, uncapped, the regular plan
-presented 341.6 and 345.2 a second against 333.3 and 340.4 for the page without them, interleaved (N64Recomp-browser's
-`plays.jsonl`, set `pd-ws1`), the GPU as busy, no shader missed. With Mouse Sensitivity above 0% the page asks for
-pointer lock as the game starts, which headless Chrome refuses (`WrongDocumentError`, an exception in the play's
-report). The mouse in a player's browser, headed, hasn't been played.
+presented 341.6 and 345.2 a second against 333.3 and 340.4 for the page without them, interleaved, the GPU as busy, no
+shader missed. With Mouse Sensitivity above 0% the page asks for pointer lock as the game starts, which headless Chrome
+refuses (`WrongDocumentError`, an exception in the play's report). The mouse in a player's browser, headed, hasn't been
+played.
 
 ## The light glares
 
@@ -106,12 +105,11 @@ a strafe, a shot, aiming, forward and back) then missed 28 more in five (G5 Buil
 Defense 5, Skedar Ruins 1), Chrome and Firefox missing different flags of the same combiners, added the same way.
 Then the route from the published page missed 2 more in Air Base, the boot as it plays by itself for 45 s (the
 publish's boot check) 3, and Firefox 1 more as the intro's Defection loads and 1 in Skedar Ruins; with them the
-route through those five misses none in either browser (N64Recomp-browser's `plays.jsonl`). The whole-game plan,
-which watches each mission's opening cutscene to its end and plays its endscreen, then missed 80 more in twelve
-missions, nearly the same ones in Chrome and Firefox (the list's header has them by mission), and its next run in
-each, with them, 2 more. Firefox waits about 3 s for the boot's section before the first frame, about 3 s for
-Defection's as it starts and 1-2 s for a later mission's as it loads, on a black screen; Chrome builds the whole list
-behind the launcher in about 8 s.
+route through those five misses none in either browser. The whole-game plan, which watches each mission's opening
+cutscene to its end and plays its endscreen, then missed 80 more in twelve missions, nearly the same ones in Chrome and
+Firefox (the list's header has them by mission), and its next run in each, with them, 2 more. Firefox waits about 3 s
+for the boot's section before the first frame, about 3 s for Defection's as it starts and 1-2 s for a later mission's as
+it loads, on a black screen; Chrome builds the whole list behind the launcher in about 8 s.
 
 ## Frame rate
 
@@ -149,15 +147,14 @@ scheduler (`g_Sched`, `g_MainNumGfxTasks`) a few milliseconds at a time and from
   turning read the keys as before. With polling stopped (a pak's menu) no poll is out, so the game restarts it as it
   always has: that is from the code, as no pak's menu was played.
 - The page, in headless Chrome at 1256x645 on a desktop GPU, the regular plan uncapped, interleaved with the page
-  without the patch (base, new, new, base, whole GPU turns on an idle host; N64Recomp-browser's `plays.jsonl`, set
-  `pd-tick2`), its game's frames counted from `g_Vars.thisframestart240` by N64Recomp-browser's
-  `tools/frame_lengths.js`: the boot and menus 57-59 a second in both, every frame about one VI; in Defection 57-59 for
-  most of the minute, 38-50 in the plan's firing, against 30 throughout for the page without it, every frame two VIs
-  (one of its plays had a 10 s stretch at 57-59, the chain broken by slow lists). Presents 343.6 and 342.6 a second
-  against 326.3 and 338.3, held by the uncapped rate (360) in all four, no WebGPU errors, no sound short, no shader
-  missed. In Firefox, the regular plan with its default prefs: no WebGPU errors or exceptions, no shader missed, 23
-  sound frames short with the host half busy with another build, Defection 42-56 frames of the game a second under
-  presents its compositor holds near 60.
+  without the patch (base, new, new, base, whole GPU turns on an idle host), its game's frames counted from
+  `g_Vars.thisframestart240` by N64Recomp-browser's `tools/frame_lengths.js`: the boot and menus 57-59 a second in both,
+  every frame about one VI; in Defection 57-59 for most of the minute, 38-50 in the plan's firing, against 30 throughout
+  for the page without it, every frame two VIs (one of its plays had a 10 s stretch at 57-59, the chain broken by slow
+  lists). Presents 343.6 and 342.6 a second against 326.3 and 338.3, held by the uncapped rate (360) in all four, no
+  WebGPU errors, no sound short, no shader missed. In Firefox, the regular plan with its default prefs: no WebGPU errors
+  or exceptions, no shader missed, 23 sound frames short with the host half busy with another build, Defection 42-56
+  frames of the game a second under presents its compositor holds near 60.
 - Render to RAM's late copy (`src/main.cpp`) is not what held a level at 30: a page whose display lists go ahead with
   the previous copy still pending draws Defection at 29-31 like this one, capped and uncapped, and a Chrome trace of
   30 s there has RT64's Gfx thread idle 90% and the game's main thread all in `joy_debug_joy`, waiting in `osRecvMesg`
@@ -190,9 +187,9 @@ scheduler (`g_Sched`, `g_MainNumGfxTasks`) a few milliseconds at a time and from
   is a guess at how long it stays on screen, since its interpolated frames are drawn before the next one comes, so
   `patches/frame_rate.c` gives the fastest of the last three frames' instead, as RT64 guesses from the VIs itself.
   The same tree with and without it, the regular plan at the display's 240 Hz on a desktop GPU, interleaved, whole GPU
-  turns on an idle host (N64Recomp-browser's `plays.jsonl`, set `pd-fps`), Defection: Chrome 116-117 presents a
-  second against 61-62, Firefox 216-219 against 55-67 with the game at 58 against 42-52; no WebGPU errors. Chrome's
-  stay at 120: its sleeps to a 240 Hz display's slots end late, as other pages' do there.
+  turns on an idle host, Defection: Chrome 116-117 presents a second against 61-62, Firefox 216-219 against 55-67 with
+  the game at 58 against 42-52; no WebGPU errors. Chrome's stay at 120: its sleeps to a 240 Hz display's slots end late,
+  as other pages' do there.
 
 `frametime_calculate` (`src/game/timing.c`) spins on `osGetCount` with no call that lets another thread run, but the
 main loop's half-frame wait before a tick leaves it little to spin: in the logos 66 of 599 calls spun, 9.7 ms in 10 s
@@ -205,15 +202,14 @@ ports and starts it again, each answered at the scheduler's next retrace (N64Rec
 out, measured). The polling stops so a console can reach the pak; here the runtime's motor calls answer at once
 beside it, so `patches/paks.c` stops the rumble without stopping the polling. The page with it beside the page Pages
 served, Defection's opening cutscene watched for 60 s in headless Chrome on a desktop GPU, Pages, build, build, Pages
-in whole GPU turns (N64Recomp-browser's `plays.jsonl`, set `pd-cutscene-rumble`): no frame of 7-8 VIs in either
-play of the build against 17 and 14, and 1 present gap over 100 ms in each (the mission's load) against 10 and 12;
-no WebGPU errors, no shader missed.
+in whole GPU turns: no frame of 7-8 VIs in either play of the build against 17 and 14, and 1 present gap over 100 ms in
+each (the mission's load) against 10 and 12; no WebGPU errors, no shader missed.
 
-A phone's CPU holds the game to 25-33 frames a second (N64Recomp-browser's docs/phones.md), and those mix frames of
-one and two VIs, which the fastest of three tells RT64 are 60: RT64 drew about one frame for each, 46-47 a second. So
-on the page, while the game can't keep 60 up, its ticks are held to every other VI and each frame says 30
-(`recomp_pd_hold_at_30`, `src/pd_natives.cpp`, says when; `patches/frame_rate.c`). The intro on a Galaxy S21 in
-Chrome, 140 s from Start Game with no input, with and without it, interleaved, big cores capped at 1.04 GHz: drawn
-51.5 and 54.4 a second against 45.9 and 46.8, presents 49.5 and 48.8 over the last minute against 44.2 and 46.6, and
-55-57 over the whole intro against 50-52. The desktop page, the regular plan uncapped on a desktop GPU, held once, for
-10 s in Defection's firing (two seconds of 50 frames); presents 354 against 356, both at the uncapped rate.
+A phone's CPU holds the game to 25-33 frames a second, and those mix frames of one and two VIs, which the fastest of
+three tells RT64 are 60: RT64 drew about one frame for each, 46-47 a second. So on the page, while the game can't keep
+60 up, its ticks are held to every other VI and each frame says 30 (`recomp_pd_hold_at_30`, `src/pd_natives.cpp`, says
+when; `patches/frame_rate.c`). The intro on a Galaxy S21 in Chrome, 140 s from Start Game with no input, with and
+without it, interleaved, big cores capped at 1.04 GHz: drawn 51.5 and 54.4 a second against 45.9 and 46.8, presents 49.5
+and 48.8 over the last minute against 44.2 and 46.6, and 55-57 over the whole intro against 50-52. The desktop page, the
+regular plan uncapped on a desktop GPU, held once, for 10 s in Defection's firing (two seconds of 50 frames); presents
+354 against 356, both at the uncapped rate.

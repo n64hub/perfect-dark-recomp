@@ -21,7 +21,7 @@
 # and plays of a route through 12 of them that turns, strafes, fires and aims then missed (28 in five: G5 Building 13,
 # 5 of them Firefox's alone and 8 Chrome's; Air Base 5, 4 of them Firefox's alone; Crash Site 4, Defense 5, Skedar
 # Ruins 1), and the same route then missed 2 more in Air Base from Pages, and the boot as it plays by itself
-# for 45 s (publish_pages.sh's boot check) 3, Firefox as the intro's Defection loads 1, and Firefox in Skedar Ruins
+# for 45 s (a published page's boot check) 3, Firefox as the intro's Defection loads 1, and Firefox in Skedar Ruins
 # on the route 1. Then the whole-game plan (tools/play_plan_full.json), which watches each mission's opening cutscene
 # to its end and plays its endscreen, missed 80 more in twelve missions (Defection 7, Investigation 1, Villa 5,
 # Chicago 13, Infiltration 15, Rescue 1, Escape 2, Air Base 11, Air Force One 1, Defense 3, Attack Ship 7, Skedar

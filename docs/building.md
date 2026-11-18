@@ -204,6 +204,13 @@ View's change callback sets what its C++ starting value already is, and the mous
 used. Two boots recorded through SDL's disk driver, one with the window held in Windows' move loop for 1.5 s five times,
 played the same sound second for second, with no gap past the logos' own silences.
 
+The save is checked by plan on the Linux build, by N64Recomp-browser's save check (its `tools/frame_dump.mjs --saves`)
+with `tools/save_plan.txt` and `tools/load_plan.txt`, whose headers say each step: a new agent named on the keyboard
+and saved to the Game Pak, the program quit and started again in the same folder with `saves/` and its files behind
+symlinks, the name found in the file list the game reads back off the EEPROM, its bytes unchanged until loading the
+agent saves the boss file through the links. The plans' keys are pressed only once the title plays: Enter held
+through the boot opens the Controller Pak Menu instead.
+
 ### On Windows
 
 The program builds for Windows x64 with clang-cl and draws through D3D12. The decomp and `patches/` still build in

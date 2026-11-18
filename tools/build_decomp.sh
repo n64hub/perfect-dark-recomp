@@ -15,7 +15,8 @@
 #     writes (a size for each function the ELF gives none, and the code no symbol names), and the check that it
 #     covers the code (tools/syms.py check).
 #
-# syms/ is tracked: a change to it shows in `git diff`. Linux with Docker; run from anywhere in the checkout:
+# syms/ is tracked: a change to it shows in `git diff`. Linux with Docker, or inside a container of that image (no
+# Docker there), where it runs right there; from anywhere in the checkout:
 #
 #     tools/build_decomp.sh path/to/pd.z64 [cpus]
 #
@@ -31,11 +32,12 @@ MD5=e03b088b6ac9e0080440efed07c1e40f
 [ "$(md5sum < "$ROM" | cut -d' ' -f1)" = "$MD5" ] || { echo "$ROM is not Perfect Dark (U) (V1.1), MD5 $MD5" >&2; exit 1; }
 git -C "$ROOT" submodule update --init --recursive lib/perfect_dark
 
-IMAGE=pd-decomp:$(sha256sum "$ROOT/tools/docker/Dockerfile" | cut -c1-12)
-docker image inspect "$IMAGE" >/dev/null 2>&1 || docker build -t "$IMAGE" "$ROOT/tools/docker"
+# The checkout as the build sees it: /src in the container, or where it is when this already runs in the image.
+src=/src
+[ -f /.dockerenv ] && ! command -v docker > /dev/null && src=$ROOT
 
 cp "$ROM" "$ROOT/lib/perfect_dark/pd.ntsc-final.z64"
-docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/src" -w /src/lib/perfect_dark -e ROMID=ntsc-final "$IMAGE" bash -euo pipefail -c "
+build="
     [ -f extracted/ntsc-final/lib.bin ] || make extract
     make -j$CPUS rom
     make -j$CPUS test
@@ -45,9 +47,9 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/src" -w /src/lib/perfect_dark 
 
     # The Makefile's own link of stage1.elf (its cpp and ld lines), with the relink patch and the bases as cpp macros.
     relink() {
-        out=/src/build/\$1
+        out=$src/build/\$1
         mkdir -p \$out
-        patch -s -o \$out/pd.ld.in ld/pd.ld /src/tools/relink.ld.patch
+        patch -s -o \$out/pd.ld.in ld/pd.ld $src/tools/relink.ld.patch
         cpp -P -I ld -DROMID=ntsc-final -DVERSION=2 -DROMALLOCATION_DATA=0x015000 -DROMALLOCATION_LIB=0x038800 \
             -DROMALLOCATION_GAME=0x144ee0 -DROM_SIZE=32 -DRELINK_LIB=\$2 -DRELINK_INFLATE=\$3 -DRELINK_GAME=\$4 \
             \$out/pd.ld.in -o \$out/pd.ld
@@ -56,19 +58,27 @@ docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/src" -w /src/lib/perfect_dark 
     relink relink 0x80001050 0x80200000 0x80220000
     relink relink-b 0x81001050 0x81200000 0x81220000
     # The relink as a flat image (an ELF section at file offset = its load address), which us.toml recompiles from.
-    mips-linux-gnu-objcopy -O binary /src/build/relink/stage1.elf /src/build/relink/stage1.bin
+    mips-linux-gnu-objcopy -O binary $src/build/relink/stage1.elf $src/build/relink/stage1.bin
     # The piracy checks' code checksums, which the decomp's mkrom writes only into its ROM.
-    python3 -I /src/tools/piracy.py build/ntsc-final/stage1.bin build/ntsc-final/pd.map /src/build/relink/stage1.bin
-    mkdir -p /src/syms
-    python3 -I /src/tools/relocs.py make /src/build/relink/stage1.elf /src/build/relink/pd.map \
-        /src/build/relink-b/stage1.elf /src/syms/relocs.txt
-    python3 -I /src/tools/relocs.py check pd.ntsc-final.z64 /src/build/relink/stage1.elf /src/build/relink/pd.map \
-        /src/syms/relocs.txt
-    python3 -I /src/tools/relocs.py scan /src/build/relink/stage1.elf /src/build/relink/pd.map > /src/build/relink/scan.txt
+    python3 -I $src/tools/piracy.py build/ntsc-final/stage1.bin build/ntsc-final/pd.map $src/build/relink/stage1.bin
+    mkdir -p $src/syms
+    python3 -I $src/tools/relocs.py make $src/build/relink/stage1.elf $src/build/relink/pd.map \
+        $src/build/relink-b/stage1.elf $src/syms/relocs.txt
+    python3 -I $src/tools/relocs.py check pd.ntsc-final.z64 $src/build/relink/stage1.elf $src/build/relink/pd.map \
+        $src/syms/relocs.txt
+    python3 -I $src/tools/relocs.py scan $src/build/relink/stage1.elf $src/build/relink/pd.map > $src/build/relink/scan.txt
 
-    cd /src/build
-    python3 -I /src/tools/syms.py relink/stage1.elf relink/pd.map /src/syms/relocs.txt dump_syms.toml
+    cd $src/build
+    python3 -I $src/tools/syms.py relink/stage1.elf relink/pd.map $src/syms/relocs.txt dump_syms.toml
     N64Recomp dump_syms.toml --dump-context
-    mv dump.toml data_dump.toml /src/syms/
-    python3 -I /src/tools/syms.py check relink/stage1.elf relink/pd.map /src/syms/dump.toml
+    mv dump.toml data_dump.toml $src/syms/
+    python3 -I $src/tools/syms.py check relink/stage1.elf relink/pd.map $src/syms/dump.toml
 "
+if [ "$src" = /src ]; then
+    IMAGE=pd-decomp:$(sha256sum "$ROOT/tools/docker/Dockerfile" | cut -c1-12)
+    docker image inspect "$IMAGE" >/dev/null 2>&1 || docker build -t "$IMAGE" "$ROOT/tools/docker"
+    docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/src" -w /src/lib/perfect_dark -e ROMID=ntsc-final "$IMAGE" \
+        bash -euo pipefail -c "$build"
+else
+    (cd "$ROOT/lib/perfect_dark" && ROMID=ntsc-final bash -euo pipefail -c "$build")
+fi

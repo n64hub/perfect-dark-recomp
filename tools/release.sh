@@ -29,6 +29,10 @@
 # beside the binary (RUNPATH $ORIGIN), as the Windows zip carries SDL2.dll, and is a .tar.gz so the binary stays
 # executable. GTK 3, FreeType and a Vulkan driver are the system's.
 # Started from another folder, either program works from its own (src/main.cpp).
+# Either build can come from elsewhere: with WINDOWS_BUILD naming a folder that holds tools/build_windows.sh's program
+# from this commit, its .pdb and DLLs (a cross-build, say), windows packs that instead of building, and run inside a
+# container of tools/docker/Dockerfile.linux's image (where there is no Docker), linux builds right there
+# (tools/build_linux.sh does too).
 # boot runs $BOOT_RELEASE on the archive, which unpacks it into a new folder with the ROM (tools/build_decomp.sh's copy)
 # stored as Load ROM stores it, runs it with --boot (and any arguments after the OS) for 30 s with its own window
 # captured, and writes the <archive>.booted publish asks for.
@@ -74,12 +78,27 @@ unpatch() {
 
 case "${1:-}" in
 windows)
-    unpatch
-    bash tools/build_windows.sh
-    clean
-    bash tools/package_windows.sh
-    mv build/PerfectDarkRecompiled-windows-x64.zip "out/$name-windows-x64.zip"
-    cp build/windows/PerfectDarkRecompiled.pdb "out/$name-windows-x64.pdb"
+    if [ -n "${WINDOWS_BUILD:-}" ]; then
+        build=$WINDOWS_BUILD
+        [ -f "$build/PerfectDarkRecompiled.exe" ] && [ -f "$build/PerfectDarkRecompiled.pdb" ] ||
+            { echo "no $build/PerfectDarkRecompiled.exe and .pdb" >&2; exit 1; }
+        clean
+        # The folder tools/package_windows.sh packs, zipped by CMake's own tar where Windows' isn't.
+        stage=build/package-cross/PerfectDarkRecompiled
+        rm -rf build/package-cross "out/$name-windows-x64.zip"
+        mkdir -p "$stage"
+        cp "$build"/{PerfectDarkRecompiled.exe,SDL2.dll,dxcompiler.dll,dxil.dll} recompcontrollerdb.txt LICENSE "$stage"/
+        cp -r assets "$stage"/
+        (cd build/package-cross && cmake -E tar cf "../../out/$name-windows-x64.zip" --format=zip PerfectDarkRecompiled)
+    else
+        unpatch
+        bash tools/build_windows.sh
+        clean
+        bash tools/package_windows.sh
+        mv build/PerfectDarkRecompiled-windows-x64.zip "out/$name-windows-x64.zip"
+        build=build/windows
+    fi
+    cp "$build/PerfectDarkRecompiled.pdb" "out/$name-windows-x64.pdb"
     echo "$commit" > "out/$name-windows-x64.zip.commit"
     echo "out/$name-windows-x64.zip ($(du -h "out/$name-windows-x64.zip" | cut -f1))"
     ;;
@@ -87,8 +106,8 @@ linux)
     unpatch
     bash tools/build_linux.sh
     clean
-    image=pd-linux:$(sha256sum tools/docker/Dockerfile.linux | cut -c1-12)
-    docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/src" -w /src "$image" bash -euo pipefail -c "
+    # Packed in tools/docker/Dockerfile.linux's image: in this host's Docker, or right here when already in it.
+    pack="set -euo pipefail
         stage=out/$name-linux-x64
         rm -rf \$stage \$stage.tar.gz
         mkdir -p \$stage
@@ -98,6 +117,12 @@ linux)
         patchelf --set-rpath '\$ORIGIN' \$stage/PerfectDarkRecompiled
         cp -r assets \$stage/
         tar -C out -czf \$stage.tar.gz $name-linux-x64"
+    if [ -f /.dockerenv ] && ! command -v docker > /dev/null; then
+        bash -c "$pack"
+    else
+        image=pd-linux:$(sha256sum tools/docker/Dockerfile.linux | cut -c1-12)
+        docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/src" -w /src "$image" bash -c "$pack"
+    fi
     echo "$commit" > "out/$name-linux-x64.tar.gz.commit"
     echo "out/$name-linux-x64.tar.gz ($(du -h "out/$name-linux-x64.tar.gz" | cut -f1))"
     ;;

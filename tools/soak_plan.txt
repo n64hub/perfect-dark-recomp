@@ -1,19 +1,20 @@
-# The desktop build's soak plan, for frame_dump.mjs --soak: one round through the game's modes and scenes in about
-# 3 minutes with the boot, failing on a crash, an exit or a picture that stands still. Its steps are
-# capture_window.ps1's plus a soak's `random`, at seconds since the program started (an until's wait moves the rest
-# on). It finds patches/shader_survey.c's struct by its magic words (survey) and plays: the logos and the title's
-# intro, Start (Enter) to the file menu, where the survey makes an Agent file on the Game Pak as New Agent does;
-# dataDyne Central - Defection, started as mission select's Accept does, its opening cutscene skipped with A (Space),
-# 25 s of random play with Joanna invincible, then ended as completed as its own script does once its objectives are
-# done; its endscreen, and Continue and Accept (Enter) to dataDyne Research - Investigation, the game's own way to the
-# next mission, played the same way and ended; Continue on its endscreen to the next mission's screen, and from there
-# the Combat Simulator's menu, opened as the main menu's Combat Simulator does, and a combat match on Skedar for
-# player 1, random play to the end. The survey only starts a solo mission from the menus or a solo level, never from
-# a combat match, which no player can do either: the game crashes there. Every scene is behind an until on the
-# survey's fields: the stage playing (+24: 0x26 the menus', 0x30 Defection, 0x33 Investigation, 0x32 Skedar), the
-# player in control (+40), the menu's root (+80, 3 the Combat Simulator's), the file saved (+56) and the missions ended
-# (+48). The random keys are the keyboard's moves (W, S), strafes (A, D), turns (arrows), fire (Q), aim (Shift), A
-# (Space) and B (E): never Start, whose pause menu can abort a mission.
+# The desktop build's soak plan, for frame_dump.mjs --soak 180: one round through the game's modes and scenes in about
+# 2.5 minutes with the boot, random play filling the rest, failing on a crash, an exit or a picture that stands
+# still. Its steps are capture_window.ps1's plus a soak's `random`, at seconds since the program started (an until's
+# wait moves the rest on). It finds patches/shader_survey.c's struct by its magic words (survey) and plays: the logos
+# and the title's intro, Start (Enter) to the file menu, where the survey makes an Agent file on the Game Pak as New
+# Agent does; dataDyne Central - Defection, started as mission select's Accept does, its opening cutscene skipped with
+# A (Space), 25 s of random play with Joanna invincible, then ended as completed as its own script does once its
+# objectives are done; its endscreen, and Continue and Accept (Enter) to dataDyne Research - Investigation, the game's
+# own way to the next mission, played the same way and ended; Continue on its endscreen and B (E) on the next screen,
+# back to the Carrington Institute, where Start opens its menu and the survey the Combat Simulator's, as the main
+# menu's Combat Simulator does; then a combat match on Skedar for player 1, random play to the end. The survey only
+# starts a solo mission from the menus or a solo level, never from a combat match, which no player can do either: the
+# game crashes there. Every scene is behind an until on the survey's fields: the stage playing (+24: 0x26 the menus'
+# and the Carrington Institute's, 0x30 Defection, 0x33 Investigation, 0x32 Skedar), the player in control (+40), the
+# menu's root (+80: -1 none, 3 the Combat Simulator's), the file saved (+56) and the missions ended (+48). The random
+# keys are the keyboard's moves (W, S), strafes (A, D), turns (arrows), fire (Q), aim (Shift), A (Space) and B (E):
+# never Start, whose pause menu can abort a mission.
 0 find survey 0x53484452,0x53525659 30
 15 until survey+24 0xFFFFFFFF 0x26 60 Enter
 17 poke survey+52 1
@@ -40,13 +41,12 @@
 78 until survey+48 0xFFFFFFFF 2 10
 82 shot endscreen2
 82 key Enter
-84 peek survey+24,survey+80
 84 key E
-85 peek survey+24,survey+80
 85 until survey+24 0xFFFFFFFF 0x26 30 E
-86 peek survey+24,survey+80
-87 poke survey+64 1
-87 until survey+80 0xFFFFFFFF 3 15
+88 shot institute
+88 until survey+80 0x80000000 0 20 Enter
+89 poke survey+64 1
+89 until survey+80 0xFFFFFFFF 3 15
 89 shot combat_simulator
 89 poke survey+72 1
 89 poke survey+68 0x32

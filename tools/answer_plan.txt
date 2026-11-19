@@ -1,0 +1,31 @@
+# The desktop build's answer plan (ops docs/new-recomp.md, 4d: a press reaches the picture at once and the view stays
+# where the stick leaves it), for frame_dump.mjs's answer steps with its stand-in pad and --no-dump, at the default
+# limits (500 ms to answer, 1000 ms to settle). Its steps are capture_window.ps1's, at seconds since the program
+# started (an until's wait moves the rest on). It reaches dataDyne Central - Defection's roof with Joanna in control
+# the soak plan's way, by patches/shader_survey.c's struct (survey): Start (Enter) to the file menu, an Agent file,
+# Defection started as mission select's Accept does and its cutscene skipped with A (Space). There it turns right on
+# the stick (leftx) and on the Right key, each turned back by an untimed step, then holds the stick 1.5 s.
+# v0.1.16 passes: the stick's turn answered in 170 ms and settled in 822 ms, the Right key's in 80 and 64 ms, the
+# 1.5 s hold's in 191 and 567 ms.
+0 find survey 0x53484452,0x53525659 30
+15 until survey+24 0xFFFFFFFF 0x26 60 Enter
+17 poke survey+52 1
+17 until survey+56 0xFFFFFFFF 1 30
+19 poke survey+16 0
+19 poke survey+12 1
+19 until survey+24 0xFFFFFFFF 0x30 60
+20 until survey+40 0xFFFFFFFF 1 60 Space
+21 poke survey+20 1
+25 shot level
+26 answer turn-right leftx 32767 0.4 500 1000
+31 pad leftx -32768
+31.4 pad leftx 0
+35 shot back1
+36 answer key-right key:Right 1 0.4 500 1000
+41 key Left 400
+45 shot back2
+46 answer hold-right leftx 32767 1.5 500 1000
+52 pad leftx -32768
+53.5 pad leftx 0
+57 shot end
+58 end

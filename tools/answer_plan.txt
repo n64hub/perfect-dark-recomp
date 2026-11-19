@@ -7,10 +7,9 @@
 # the stick (leftx) and on the Right key, each turned back by an untimed step, then holds the stick 1.5 s.
 # v0.1.16 passes: the stick's turn answered in 170 ms and settled in 822 ms, the Right key's in 80 and 64 ms, the
 # 1.5 s hold's in 191 and 567 ms. The roof isn't quite still: an idle bob of Joanna's view moves 10-20% of the picture
-# over a cycle of 2-3 s, longer than the second before a press the answer step learns the scene's own motion from, so
-# its settle check can read a step late: a replay of v0.1.16 read the hold settled 1391 ms after the release, though
-# from 521 ms on no read differed from the one 40 ms later by over 3%. A step that reads late is that bob when its
-# reads stop changing by then; a view that eases or springs back keeps changing.
+# over a cycle of 2-3 s, which the answer step allows for by learning the scene's own motion over the 2.5 s before each
+# press, as long as it reads after the release; a replay of v0.1.16 settled the three 500, 166 and 524 ms after the
+# release (over a second before the press alone, the hold once read 1391 ms, though its view stopped at 521).
 0 find survey 0x53484452,0x53525659 30
 15 until survey+24 0xFFFFFFFF 0x26 60 Enter
 17 poke survey+52 1

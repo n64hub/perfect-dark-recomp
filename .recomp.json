@@ -1,0 +1,24 @@
+{
+  "$schema": "https://recomp.fyi/schema/v1.json",
+  "game": "Perfect Dark",
+  "system": "N64",
+  "type": "recomp",
+  "original": {
+    "region": "USA",
+    "revision": "Rev 1"
+  },
+  "project": "Perfect Dark: Recompiled",
+  "status": "released",
+  "targets": [
+    "Windows",
+    "Linux",
+    "Browser"
+  ],
+  "toolchain": "N64recomp",
+  "links": [
+    {
+      "label": "Play in a browser",
+      "url": "https://n64hub.com/perfect-dark/"
+    }
+  ]
+}

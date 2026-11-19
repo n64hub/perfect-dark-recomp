@@ -26,5 +26,6 @@ __pycache__/
 # What a run from the checkout writes (portable.txt makes the program keep its data here)
 /portable.txt
 /*.json
+!/.recomp.json
 /saves/
 /*.log

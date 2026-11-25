@@ -20,9 +20,10 @@
 # release to the next keeps build/windows and build/linux, so there only what changed builds.
 #
 # Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (the DLLs, assets/,
-# recompcontrollerdb.txt and LICENSE beside the exe). It needs the Visual C++ 2015-2022 redistributable (x64). Its .pdb
-# goes to out/<name>-windows-x64.pdb and is never published (it holds the builder's folder names): a player's crash
-# prints PerfectDarkRecompiled.exe+<offset> lines (src/crash_trace.cpp), which it names, e.g.
+# recompcontrollerdb.txt, recomplauncher.json and LICENSE beside the exe). It needs the Visual C++ 2015-2022
+# redistributable (x64). Its .pdb goes to out/<name>-windows-x64.pdb and is never published (it holds the builder's
+# folder names): a player's crash prints PerfectDarkRecompiled.exe+<offset> lines (src/crash_trace.cpp), which it
+# names, e.g.
 # llvm-symbolizer --obj=<the release's exe> --relative-address <offset>, with the .pdb beside that exe.
 # Linux: tools/build_linux.sh's program, built in tools/docker/Dockerfile.linux, Ubuntu 22.04, so it needs glibc 2.35
 # or newer, with its debug info stripped. It carries the libSDL2 it was built with and libatomic (not on every system)
@@ -87,7 +88,7 @@ windows)
         stage=build/package-cross/PerfectDarkRecompiled
         rm -rf build/package-cross "out/$name-windows-x64.zip"
         mkdir -p "$stage"
-        cp "$build"/{PerfectDarkRecompiled.exe,SDL2.dll,dxcompiler.dll,dxil.dll} recompcontrollerdb.txt LICENSE "$stage"/
+        cp "$build"/{PerfectDarkRecompiled.exe,SDL2.dll,dxcompiler.dll,dxil.dll} recompcontrollerdb.txt recomplauncher.json LICENSE "$stage"/
         cp -r assets "$stage"/
         (cd build/package-cross && cmake -E tar cf "../../out/$name-windows-x64.zip" --format=zip PerfectDarkRecompiled)
     else
@@ -112,7 +113,7 @@ linux)
         rm -rf \$stage \$stage.tar.gz
         mkdir -p \$stage
         strip --strip-debug -o \$stage/PerfectDarkRecompiled build/linux/PerfectDarkRecompiled
-        cp recompcontrollerdb.txt LICENSE \$stage/
+        cp recompcontrollerdb.txt recomplauncher.json LICENSE \$stage/
         cp -L /usr/local/lib/libSDL2-2.0.so.0 /usr/lib/x86_64-linux-gnu/libatomic.so.1 \$stage/
         patchelf --set-rpath '\$ORIGIN' \$stage/PerfectDarkRecompiled
         cp -r assets \$stage/

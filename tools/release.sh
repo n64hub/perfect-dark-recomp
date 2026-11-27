@@ -14,10 +14,11 @@
 # moves releases/next.md to releases/v<version>.md: what a player gets, not a list of merged PRs. The tag is
 # v<version_string>. Both builds and the publish run on that PR's merge commit, checked out with a clean tree: each
 # build refuses a tree with changes (the build scripts move the submodules onto their pins first, unpatch below) and
-# records the commit it was built from (out/<archive>.commit), and publish refuses archives from another one or that
-# haven't booted (boot), a tree with changes, a commit not on origin/main or still holding releases/next.md, or a tag
-# that exists. A change merged meanwhile goes in the next release and doesn't stop this one. A clone kept from one
-# release to the next keeps build/windows and build/linux, so there only what changed builds.
+# records the commit it was built from (out/<archive>.commit), and publish refuses archives from another one, a Linux
+# archive that hasn't booted or a Windows zip whose boot doesn't match it (boot), a tree with changes, a commit not on
+# origin/main or still holding releases/next.md, or a tag that exists. A change merged meanwhile goes in the next
+# release and doesn't stop this one. A clone kept from one release to the next keeps build/windows and build/linux, so
+# there only what changed builds.
 #
 # Windows: tools/build_windows.sh's program, packed by tools/package_windows.sh (the DLLs, assets/,
 # recompcontrollerdb.txt, recomplauncher.json and LICENSE beside the exe). It needs the Visual C++ 2015-2022
@@ -36,7 +37,9 @@
 # (tools/build_linux.sh does too).
 # boot runs $BOOT_RELEASE on the archive, which unpacks it into a new folder with the ROM (tools/build_decomp.sh's copy)
 # stored as Load ROM stores it, runs it with --boot (and any arguments after the OS) for 30 s with its own window
-# captured, and writes the <archive>.booted publish asks for.
+# captured, and writes the <archive>.booted publish asks for. Publish needs the Linux archive's; the Windows zip's boot
+# is optional, since no release's Windows boot has caught anything the Linux boot didn't, but a .booted beside the zip
+# must match it.
 # v0.1.0's Linux archive was checked by running it in distribution containers under Xvfb with Mesa's software Vulkan
 # (lavapipe), from another folder, the ROM stored beside it, --boot: on Ubuntu 22.04 and Debian 12 it played the intro
 # for 3 minutes; on Ubuntu 24.04 (Mesa 25.2) it drew the title and then lavapipe crashed in one of its own llvmpipe
@@ -152,8 +155,9 @@ publish)
     for f in "${files[@]}"; do
         [ -f "$f" ] || { echo "no $f: run tools/release.sh windows and linux first" >&2; exit 1; }
         [ "$(cat "$f.commit" 2> /dev/null)" = "$commit" ] || { echo "$f wasn't built from $commit" >&2; exit 1; }
+        [ "$f" != "out/$name-windows-x64.zip" ] || [ -e "$f.booted" ] || continue  # its boot is optional (above)
         [ "$(cat "$f.booted" 2> /dev/null)" = "$(sha256sum "$f" | cut -d' ' -f1)" ] ||
-            { echo "$f hasn't booted: run tools/release.sh boot windows and linux first" >&2; exit 1; }
+            { echo "$f hasn't booted as it is now: run tools/release.sh boot on its OS first" >&2; exit 1; }
     done
     gh release create "$tag" "${files[@]}" --target "$commit" --title "Perfect Dark: Recompiled $tag" --notes-file "$notes"
     ;;

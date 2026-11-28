@@ -210,13 +210,17 @@ jobs:
         with:
           path: ~/apt-archives
           key: ${{ steps.key.outputs.apt }}
+      # The cache can hold a newer build of a package the image already has, and a package it depends on: libasound2-data
+      # 0.5 beside the image's libasound2t64 0.3, whose 0.5 is in the cache too. dpkg installs them one at a time, and
+      # without --auto-deconfigure it refuses the first, so the image's package is left unconfigured. If the cache still
+      # fails, apt-get -f puts that right while it installs from the archive.
       - name: Install dependencies
         run: |
           pkgs="clang lld libsdl2-dev libgtk-3-dev libfreetype-dev"
-          if ls ~/apt-archives/*.deb > /dev/null 2>&1 && sudo dpkg -i ~/apt-archives/*.deb > /dev/null &&
-              dpkg -s $pkgs > /dev/null; then exit 0; fi
+          if ls ~/apt-archives/*.deb > /dev/null 2>&1 &&
+              sudo dpkg -i --auto-deconfigure ~/apt-archives/*.deb > /dev/null && dpkg -s $pkgs > /dev/null; then exit 0; fi
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends $pkgs
+          sudo apt-get install -y -f --no-install-recommends $pkgs
           mkdir -p ~/apt-archives && cp /var/cache/apt/archives/*.deb ~/apt-archives/
       - uses: lukka/get-cmake@latest
         with:

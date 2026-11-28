@@ -37,9 +37,10 @@
 # (tools/build_linux.sh does too).
 # boot runs $BOOT_RELEASE on the archive, which unpacks it into a new folder with the ROM (tools/build_decomp.sh's copy)
 # stored as Load ROM stores it, runs it with --boot (and any arguments after the OS) for 30 s with its own window
-# captured, and writes the <archive>.booted publish asks for. Publish needs the Linux archive's; the Windows zip's boot
-# is optional, since no release's Windows boot has caught anything the Linux boot didn't, but a .booted beside the zip
-# must match it.
+# captured, and writes the <archive>.booted publish asks for. Publish needs the Linux archive's, and the Windows zip's
+# too when lib/N64Recomp-browser's pin moved since the last release (or there is none yet): a change to the web support
+# can break a Windows build alone (a name Windows' headers define), which the Linux boot doesn't see. Otherwise the
+# zip's boot is optional, but a .booted beside the zip must match it.
 # v0.1.0's Linux archive was checked by running it in distribution containers under Xvfb with Mesa's software Vulkan
 # (lavapipe), from another folder, the ROM stored beside it, --boot: on Ubuntu 22.04 and Debian 12 it played the intro
 # for 3 minutes; on Ubuntu 24.04 (Mesa 25.2) it drew the title and then lavapipe crashed in one of its own llvmpipe
@@ -151,11 +152,19 @@ publish)
     git merge-base --is-ancestor "$commit" origin/main || { echo "HEAD is not on origin/main" >&2; exit 1; }
     [ ! -e releases/next.md ] || { echo "releases/next.md is still there: move it to $notes in the release's PR" >&2; exit 1; }
     ! gh release view "$tag" > /dev/null 2>&1 || { echo "release $tag exists: bump version_string first" >&2; exit 1; }
+    # N64Recomp-browser's pin against the last release's: moved (or no release yet), the Windows zip has to boot too.
+    last=$(git describe --tags --abbrev=0 --match 'v*' 2> /dev/null || true)
+    browser=moved pin=lib/N64Recomp-browser
+    [ -z "$last" ] || [ "$(git rev-parse "$last:$pin")" != "$(git rev-parse "HEAD:$pin")" ] || browser=same
     files=("out/$name-windows-x64.zip" "out/$name-linux-x64.tar.gz")
     for f in "${files[@]}"; do
         [ -f "$f" ] || { echo "no $f: run tools/release.sh windows and linux first" >&2; exit 1; }
         [ "$(cat "$f.commit" 2> /dev/null)" = "$commit" ] || { echo "$f wasn't built from $commit" >&2; exit 1; }
-        [ "$f" != "out/$name-windows-x64.zip" ] || [ -e "$f.booted" ] || continue  # its boot is optional (above)
+        if [ "$f" = "out/$name-windows-x64.zip" ] && [ ! -e "$f.booted" ]; then
+            [ "$browser" = moved ] || continue  # its boot is optional unless N64Recomp-browser moved (above)
+            echo "$f hasn't booted, and N64Recomp-browser moved since ${last:-no release}: boot it first" >&2
+            exit 1
+        fi
         [ "$(cat "$f.booted" 2> /dev/null)" = "$(sha256sum "$f" | cut -d' ' -f1)" ] ||
             { echo "$f hasn't booted as it is now: run tools/release.sh boot on its OS first" >&2; exit 1; }
     done
